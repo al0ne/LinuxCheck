@@ -13,10 +13,10 @@ if ag -V > /dev/null 2>&1; then
 else
     case ${ID} in
         debian|ubuntu|devuan)
-            apt-get install silversearcher-ag > /dev/null 2>&1
+            apt-get -y install silversearcher-ag > /dev/null 2>&1
                 ;;
         centos|fedora|rhel)
-            yum install silversearcher-ag > /dev/null 2>&1
+            yum -y install the_silver_searcher > /dev/null 2>&1
                 ;;
                         *)
             exit 1
@@ -147,7 +147,7 @@ cat ~/.*history|ag '[12](?:[0-9]{1,2})?\.[12](?:[0-9]{1,2})?\.[12](?:[0-9]{1,2})
 echo -e "\n"
 #HOSTS
 echo -e "\e[00;31m[+]/etc/hosts \e[00m"
-cat /etc/hosts
+cat /etc/hosts | ag -v "#"
 echo -e "\n"
 #/etc/profile
 echo -e "\e[00;31m[+]/etc/profile \e[00m"
@@ -160,6 +160,10 @@ echo -e "\n"
 #~/.bashrc
 echo -e "\e[00;31m[+]~/.bashrc \e[00m"
 cat ~/.bashrc|ag -v '#'
+echo -e "\n"
+#...隐藏文件
+echo -e "\e[00;31m[+]...隐藏文件 \e[00m"
+find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -name ".*."
 echo -e "\n"
 #tmp目录
 echo -e "\e[00;31m[+]/tmp \e[00m"
@@ -175,7 +179,7 @@ find /etc /bin /sbin /dev /root/ /home /tmp /opt -mtime -7|ag -v 'cache|vim'
 echo -e "\n"
 #大文件>200mb
 echo -e "\e[00;31m[+]大文件>200mb \e[00m"
-find / -size +200M -print  2>/dev/null|xargs -i{} ls -alh {}
+find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +200M -print  2>/dev/null|xargs -i{} ls -alh {}
 echo -e "\n"
 #lsmod 查看模块
 echo -e "\e[00;31m[+]lsmod模块\e[00m"
