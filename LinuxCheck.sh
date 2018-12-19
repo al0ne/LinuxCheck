@@ -5,14 +5,14 @@ echo -e "\e[00;31m[+]系统信息\e[00m"
 echo -e "USER:\t\t" `whoami` 2>/dev/null
 #版本信息
 source /etc/os-release
-echo -e "OS Version:\t"  $PRETTY_NAME
+echo -e "OS Version:\t"  ${PRETTY_NAME}
 #主机名
 echo -e "Hostname: \t" `hostname -s`
 #cpu信息
 echo -e "CPU info:\t" `cat /proc/cpuinfo|ag -o '(?<=model name\t: ).*'|head -n 1`
 # ipaddress
 ipaddress=`ifconfig|ag -o '(?<=inet addr:)\d+\.\d+\.\d+\.\d+'|ag -v '127.0.0.1'` >/dev/null 2>&1
-echo -e "IPADDR:\t\t$ipaddress"|sed ":a;N;s/\n/ /g;ta"
+echo -e "IPADDR:\t\t${ipaddress}"|sed ":a;N;s/\n/ /g;ta"
 echo
 
 echo -e "\e[00;31m[+]CPU使用率:  \e[00m"
@@ -25,7 +25,7 @@ done
 echo
 #CPU占用
 cpu=`ps aux|grep -v ^'USER'|sort -rn -k3|head -10` 2>/dev/null
-echo -e "\e[00;31m[+]CPU TOP10:  \e[00m\n$cpu\n"
+echo -e "\e[00;31m[+]CPU TOP10:  \e[00m\n${cpu}\n"
 #内存占用
 echo -e "\e[00;31m[+]内存占用\e[00m"
 free -mh
@@ -98,7 +98,7 @@ echo "登陆ip:" `ag -a accepted /var/log/auth.*|ag -o '\d+\.\d+\.\d+\.\d+'|sort
 echo
 #运行服务
 echo -e "\e[00;31m[+]Service \e[00m"
-case $ID in
+case ${ID} in
     debian|ubuntu|devuan)
         service --status-all |ag -Q '+' --nocolor
             ;;
@@ -130,10 +130,27 @@ sudo lsmod
 echo
 #检查ssh key
 echo -e "\e[00;31m[+]SSH key\e[00m"
-sshkey=$HOME/.ssh/authorized_keys
-if [ -e "$sshkey" ]; then 
-    cat $sshkey
+sshkey=${HOME}/.ssh/authorized_keys
+if [ -e "${sshkey}" ]; then 
+    cat ${sshkey}
 else
     echo -e "SSH key文件不存在\n"
 fi 
 echo
+
+rkhuntercheck()
+{
+rkhunter='/tmp/rkhunter-1.4.6/files/rkhunter'
+if ${rkhunter} > /dev/null 2>&1; then
+    ${rkhunter} --checkall --sk|ag -v 'OK|Not found|None found'
+else
+    wget 'https://astuteinternet.dl.sourceforge.net/project/rkhunter/rkhunter/1.4.6/rkhunter-1.4.6.tar.gz' -O /tmp/rkhunter.tar.gz > /dev/null 2>&1
+    cd /tmp
+    tar -zxvf rkhunter.tar.gz > /dev/null 2>&1
+    ${rkhunter} --checkall --sk|ag -v 'OK|Not found|None found'
+
+fi  
+}
+echo -e "\e[00;31m[+]RKhunter\e[00m"
+rkhuntercheck
+echo -e '\n'
