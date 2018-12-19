@@ -1,10 +1,33 @@
 #!/bin/bash
 
+echo ""
+echo " ========================================================= "
+echo " \                 Linux信息搜集脚本                     / "
+echo " ========================================================= "
+echo " # author：al0ne                    "
+echo " # https://github.com/al0ne/LinuxCheck     "
+echo
+source /etc/os-release
+if ag -V > /dev/null 2>&1; then
+    echo -n
+else
+    case ${ID} in
+        debian|ubuntu|devuan)
+            apt-get install silversearcher-ag > /dev/null 2>&1
+                ;;
+        centos|fedora|rhel)
+            yum install silversearcher-ag > /dev/null 2>&1
+                ;;
+                        *)
+            exit 1
+                ;;
+    esac
+
+fi 
 echo -e "\e[00;31m[+]系统信息\e[00m"
 #当前用户
 echo -e "USER:\t\t" `whoami` 2>/dev/null
 #版本信息
-source /etc/os-release
 echo -e "OS Version:\t"  ${PRETTY_NAME}
 #主机名
 echo -e "Hostname: \t" `hostname -s`
