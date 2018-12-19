@@ -12,3 +12,5 @@ bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/L
 Linenum
 
 https://github.com/lis912/Evaluation_tools
+
+https://ixyzero.com/blog/archives/4.html
