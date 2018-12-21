@@ -7,6 +7,10 @@ echo " ========================================================= "
 echo " # author：al0ne                    "
 echo " # https://github.com/al0ne/LinuxCheck     "
 echo -e "\n"
+if [ $UID -ne 0 ]; then
+    echo "请使用root权限运行！！！"
+    exit 1
+fi
 source /etc/os-release
 if ag -V > /dev/null 2>&1; then
     echo -n
@@ -24,10 +28,19 @@ else
     esac
 
 fi
-if [ $UID -ne 0 ]; then
-    echo "请使用root权限运行！！！"
-    exit 1
-fi
+echo -e "\e[00;31m[+]系统改动\e[00m"
+case ${ID} in
+    debian|ubuntu|devuan)
+        apt install -y debsums > /dev/null 2>&1
+        debsums -e|ag -v 'OK'
+            ;;
+    centos|fedora|rhel)
+        rpm -Va
+            ;;
+                    *)
+        exit 1
+            ;;
+   esac
 echo -e "\e[00;31m[+]系统信息\e[00m"
 #当前用户
 echo -e "USER:\t\t" `whoami` 2>/dev/null
@@ -161,6 +174,10 @@ echo -e "\n"
 echo -e "\e[00;31m[+]~/.bashrc \e[00m"
 cat ~/.bashrc|ag -v '#'
 echo -e "\n"
+#bash反弹shell
+echo -e "\e[00;31m[+]bash反弹shell \e[00m"
+ps -ef | ag 'bash -i'|ag -v 'ag'|awk '{print $2}'|xargs -i{} lsof -p {}|ag 'ESTAB' --nocolor
+echo -e "\n"
 #...隐藏文件
 echo -e "\e[00;31m[+]...隐藏文件 \e[00m"
 find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -name ".*."
@@ -175,11 +192,11 @@ lsof +L1
 echo -e "\n"
 #近7天改动
 echo -e "\e[00;31m[+]近七天文件改动 \e[00m"
-find /etc /bin /sbin /dev /root/ /home /tmp /opt -mtime -7|ag -v 'cache|vim'
+find /etc /bin /sbin /dev /root/ /home /tmp  -mtime -7|ag -v 'cache|vim'
 echo -e "\n"
 #大文件>200mb
 echo -e "\e[00;31m[+]大文件>200mb \e[00m"
-find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +200M -print  2>/dev/null|xargs -i{} ls -alh {}
+find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +200M -print  2>/dev/null|xargs -i{} ls -alh {}|ag '\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.txt|\.tar|/\w+$' --nocolor
 echo -e "\n"
 #lsmod 查看模块
 echo -e "\e[00;31m[+]lsmod模块\e[00m"
