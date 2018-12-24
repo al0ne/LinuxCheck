@@ -5,7 +5,6 @@ echo " ========================================================= "
 echo " \                 Linux信息搜集脚本                     / "
 echo " ========================================================= "
 echo " # author：al0ne                    "
-echo " # https://github.com/al0ne/LinuxCheck     "
 echo -e "\n"
 if [ $UID -ne 0 ]; then
 	echo "请使用root权限运行！！！"
@@ -224,9 +223,9 @@ rkhuntercheck() {
 		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 	else
 		wget 'https://astuteinternet.dl.sourceforge.net/project/rkhunter/rkhunter/1.4.6/rkhunter-1.4.6.tar.gz' -O /tmp/rkhunter.tar.gz >/dev/null 2>&1
-		cd /tmp
 		tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
-		sh /tmp/rkhunter-1.4.6/installer.sh --install >/dev/null 2>&1
+		cd /tmp/rkhunter-1.4.6/
+		./installer.sh --install >/dev/null 2>&1
 		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 
 	fi
