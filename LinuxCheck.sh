@@ -16,7 +16,7 @@ if ag -V >/dev/null 2>&1; then
 	echo -n
 else
 	case ${ID} in
-	debian | ubuntu | devuan)
+	debian | ubuntu | devuan |kali)
 		apt-get -y install silversearcher-ag >/dev/null 2>&1
 		;;
 	centos | fedora | rhel)
@@ -33,7 +33,7 @@ if debsums --help >/dev/null 2>&1; then
 	debsums -e | ag -v 'OK'
 else
 	case ${ID} in
-	debian | ubuntu | devuan)
+	debian | ubuntu | devuan | kali)
 		apt install -y debsums >/dev/null 2>&1
 		debsums -e | ag -v 'OK'
 		;;
