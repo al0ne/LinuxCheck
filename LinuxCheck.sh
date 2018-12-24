@@ -29,18 +29,22 @@ else
 
 fi
 echo -e "\e[00;31m[+]系统改动\e[00m"
-case ${ID} in
-debian | ubuntu | devuan)
-	apt install -y debsums >/dev/null 2>&1
+if debsums --help >/dev/null 2>&1; then
 	debsums -e | ag -v 'OK'
-	;;
-centos | fedora | rhel)
-	rpm -Va
-	;;
-*)
-	exit 1
-	;;
-esac
+else
+	case ${ID} in
+	debian | ubuntu | devuan)
+		apt install -y debsums >/dev/null 2>&1
+		debsums -e | ag -v 'OK'
+		;;
+	centos | fedora | rhel)
+		rpm -Va
+		;;
+	*)
+		exit 1
+		;;
+	esac
+fi
 echo -e "\n"
 echo -e "\e[00;31m[+]系统信息\e[00m"
 #当前用户
@@ -216,14 +220,14 @@ echo -e "\e[00;31m[+]PHP webshell查杀\e[00m"
 ag --php -l -s 'assert\(|phpspy|c99sh|milw0rm|eval?\(|\(gunerpress|\(base64_decoolcode|spider_bc|shell_exec\(|passthru\(|base64_decode\s?\(|gzuncompress\s?\(|\(\$\$\w+|call_user_func\(|preg_replace_callback\(|preg_replace\(|register_shutdown_function\(|register_tick_function\(|mb_ereg_replace_callback\(|filter_var\(|ob_start\(|usort\(|uksort\(|GzinFlate\s?\(|\$\w+\(\d+\)\.\$\w+\(\d+\)\.|\$\w+=str_replace\(' /
 echo -e "\n"
 rkhuntercheck() {
-	rkhunter='/tmp/rkhunter-1.4.6/files/rkhunter'
-	if ${rkhunter} >/dev/null 2>&1; then
-		${rkhunter} --checkall --sk | ag -v 'OK|Not found|None found'
+	if rkhunter >/dev/null 2>&1; then
+		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 	else
 		wget 'https://astuteinternet.dl.sourceforge.net/project/rkhunter/rkhunter/1.4.6/rkhunter-1.4.6.tar.gz' -O /tmp/rkhunter.tar.gz >/dev/null 2>&1
 		cd /tmp
 		tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
-		${rkhunter} --checkall --sk | ag -v 'OK|Not found|None found'
+		sh /tmp/rkhunter-1.4.6/installer.sh --install >/dev/null 2>&1
+		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 
 	fi
 }
