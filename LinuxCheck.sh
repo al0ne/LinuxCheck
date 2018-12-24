@@ -15,8 +15,8 @@ source /etc/os-release
 if ag -V >/dev/null 2>&1; then
 	echo -n
 else
-	case ${ID} in
-	debian | ubuntu | devuan |kali)
+	case ${ID_LIKE} in
+	debian | ubuntu | devuan)
 		apt-get -y install silversearcher-ag >/dev/null 2>&1
 		;;
 	centos | fedora | rhel)
@@ -32,8 +32,8 @@ echo -e "\e[00;31m[+]系统改动\e[00m"
 if debsums --help >/dev/null 2>&1; then
 	debsums -e | ag -v 'OK'
 else
-	case ${ID} in
-	debian | ubuntu | devuan | kali)
+	case ${ID_LIKE} in
+	debian | ubuntu | devuan)
 		apt install -y debsums >/dev/null 2>&1
 		debsums -e | ag -v 'OK'
 		;;
@@ -143,7 +143,7 @@ echo "登陆ip:" $(ag -a accepted /var/log/auth.* | ag -o '\d+\.\d+\.\d+\.\d+' |
 echo -e "\n"
 #运行服务
 echo -e "\e[00;31m[+]Service \e[00m"
-case ${ID} in
+case ${ID_LIKE} in
 debian | ubuntu | devuan)
 	service --status-all | ag -Q '+' --nocolor
 	;;
