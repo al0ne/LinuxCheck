@@ -2,7 +2,7 @@
 
 echo ""
 echo " ========================================================= "
-echo " \                 Linux信息搜集脚本                     / "
+echo " \                 Linux信息搜集脚本 V1.2                 / "
 echo " ========================================================= "
 echo " # author：al0ne                    "
 echo -e "\n"
@@ -110,6 +110,15 @@ echo -e "\n"
 echo -e "\e[00;31m[+]DNS Server\e[00m"
 cat /etc/resolv.conf | ag -o '\d+\.\d+\.\d+\.\d+' --nocolor
 echo -e "\n"
+#混杂模式
+echo -e "\e[00;31m[+]网卡混杂模式\e[00m"
+if ip link | ag PROMISC >/dev/null 2>&1; then
+	echo "网卡存在混杂模式！"
+else
+	echo "网卡不存在混杂模式"
+
+fi
+echo -e "\n"
 #crontab
 echo -e "\e[00;31m[+]Crontab\e[00m"
 crontab -u root -l | ag -v '#' --nocolor
@@ -118,6 +127,10 @@ echo -e "\n"
 #env
 echo -e "\e[00;31m[+]env\e[00m"
 env
+echo -e "\n"
+#LD_PRELOAD
+echo -e "\e[00;31m[+]LD_PRELOAD\e[00m"
+echo ${LD_PRELOAD}
 echo -e "\n"
 #passwd信息
 echo -e "\e[00;31m[+]可登陆用户\e[00m"
@@ -187,7 +200,11 @@ find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -na
 echo -e "\n"
 #tmp目录
 echo -e "\e[00;31m[+]/tmp \e[00m"
-ls /tmp -al
+ls /tmp /var/tmp /dev/shm -al
+echo -e "\n"
+#SUID
+echo -e "\e[00;31m[+]SUID \e[00m"
+find / ! -path "/proc/*" -perm -004000 -type f | ag -v 'snap|docker'
 echo -e "\n"
 #lsof -L1
 echo -e "\e[00;31m[+]lsof -L1 \e[00m"
@@ -195,11 +212,11 @@ lsof +L1
 echo -e "\n"
 #近7天改动
 echo -e "\e[00;31m[+]近七天文件改动 \e[00m"
-find /etc /bin /sbin /dev /root/ /home /tmp -mtime -7 | ag -v 'cache|vim'
+find /etc /bin /sbin /dev /root/ /home /tmp /var /usr -mtime -7 -type f | ag -v 'cache|vim|/share/|/lib/' | xargs -i{} ls -alh {}
 echo -e "\n"
 #大文件>200mb
 echo -e "\e[00;31m[+]大文件>200mb \e[00m"
-find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +200M -print 2>/dev/null | xargs -i{} ls -alh {} | ag '\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.txt|\.tar|/\w+$' --nocolor
+find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +200M -print 2>/dev/null | xargs -i{} ls -alh {} | ag '\.gif|\.jpeg|\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.txt|\.tar|\.db|/\w+$' --nocolor
 echo -e "\n"
 #lsmod 查看模块
 echo -e "\e[00;31m[+]lsmod模块\e[00m"
@@ -216,7 +233,7 @@ fi
 echo -e "\n"
 #PHP webshell查杀
 echo -e "\e[00;31m[+]PHP webshell查杀\e[00m"
-ag --php -l -s 'assert\(|phpspy|c99sh|milw0rm|eval?\(|\(gunerpress|\(base64_decoolcode|spider_bc|shell_exec\(|passthru\(|base64_decode\s?\(|gzuncompress\s?\(|\(\$\$\w+|call_user_func\(|preg_replace_callback\(|preg_replace\(|register_shutdown_function\(|register_tick_function\(|mb_ereg_replace_callback\(|filter_var\(|ob_start\(|usort\(|uksort\(|GzinFlate\s?\(|\$\w+\(\d+\)\.\$\w+\(\d+\)\.|\$\w+=str_replace\(' /
+ag --php -l -s 'assert\(|phpspy|c99sh|milw0rm|eval?\(|\(gunerpress|\(base64_decoolcode|spider_bc|shell_exec\(|passthru\(|base64_decode\s?\(|gzuncompress\s?\(|\(\$\$\w+|call_user_func\(|preg_replace_callback\(|preg_replace\(|register_shutdown_function\(|register_tick_function\(|mb_ereg_replace_callback\(|filter_var\(|ob_start\(|usort\(|uksort\(|GzinFlate\s?\(|\$\w+\(\d+\)\.\$\w+\(\d+\)\.|\$\w+=str_replace\(|eval\/\*.*\*\/\(' /
 echo -e "\n"
 rkhuntercheck() {
 	if rkhunter >/dev/null 2>&1; then
