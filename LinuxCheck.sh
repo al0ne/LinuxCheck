@@ -98,6 +98,10 @@ echo -e "\n"
 echo -e "\e[00;31m[+]端口监听\e[00m"
 netstat -tulpen | ag 'tcp|udp.*' --nocolor
 echo -e "\n"
+#对外开放端口
+echo -e "\e[00;31m[+]对外开放端口\e[00m"
+netstat -tulpen | awk '{print $1,$4}' | ag -o '.*0.0.0.0:(\d+)' --nocolor
+echo -e "\n"
 #网络连接
 echo -e "\e[00;31m[+]网络连接\e[00m"
 netstat -antop | ag ESTAB --nocolor
@@ -118,6 +122,39 @@ else
 	echo "网卡不存在混杂模式"
 
 fi
+echo -e "\n"
+#安装软件
+echo -e "\e[00;31m[+]常用软件\e[00m"
+cmdline=(
+	"which perl"
+	"which gcc"
+	"which g++"
+	"which python"
+	"which php"
+	"which cc"
+	"which go"
+	"which node"
+	"which clang"
+	"which ruby"
+	"which curl"
+	"which wget"
+	"which mysql"
+	"which redis"
+	"which apache"
+	"which nginx"
+	"which git"
+	"which mongodb"
+	"which docker"
+	"which tftp"
+	"which psql"
+)
+
+for prog in "${cmdline[@]}"; do
+	soft=$($prog)
+	if [ "$soft" ]; then
+		echo -e "$soft" | ag -o '\w+$' --nocolor
+	fi
+done
 echo -e "\n"
 #crontab
 echo -e "\e[00;31m[+]Crontab\e[00m"
@@ -200,7 +237,7 @@ find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -na
 echo -e "\n"
 #tmp目录
 echo -e "\e[00;31m[+]/tmp \e[00m"
-ls /tmp /var/tmp /dev/shm -al
+ls /tmp /var/tmp /dev/shm -alh
 echo -e "\n"
 #SUID
 echo -e "\e[00;31m[+]SUID \e[00m"
