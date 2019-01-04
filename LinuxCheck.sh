@@ -4,6 +4,7 @@ echo ""
 echo " ========================================================= "
 echo " \                 Linux信息搜集脚本 V1.2                 / "
 echo " ========================================================= "
+echo " # 支持Centos、Debian系统检测                    "
 echo " # author：al0ne                    "
 echo -e "\n"
 if [ $UID -ne 0 ]; then
@@ -15,11 +16,39 @@ if ag -V >/dev/null 2>&1; then
 	echo -n
 else
 	case ${ID_LIKE} in
-	debian | ubuntu | devuan)
+	"debian" | "ubuntu" | "devuan")
 		apt-get -y install silversearcher-ag >/dev/null 2>&1
 		;;
-	centos | fedora | rhel)
+	"centos" | "rhel fedora" | "rhel")
 		yum -y install the_silver_searcher >/dev/null 2>&1
+		;;
+	*)
+		exit 1
+		;;
+	esac
+
+fi
+#Centos安装net-tools
+if ifconfig >/dev/null 2>&1; then
+	echo -n
+else
+	case ${ID_LIKE} in
+	"centos" | "rhel fedora" | "rhel")
+		yum -y install net-tools >/dev/null 2>&1
+		;;
+	*)
+		exit 1
+		;;
+	esac
+
+fi
+#Centos安装lsof
+if lsof >/dev/null 2>&1; then
+	echo -n
+else
+	case ${ID_LIKE} in
+	"centos" | "rhel fedora" | "rhel")
+		yum -y install lsof >/dev/null 2>&1
 		;;
 	*)
 		exit 1
@@ -32,11 +61,11 @@ if debsums --help >/dev/null 2>&1; then
 	debsums -e | ag -v 'OK'
 else
 	case ${ID_LIKE} in
-	debian | ubuntu | devuan)
+	"debian" | "ubuntu" | "devuan")
 		apt install -y debsums >/dev/null 2>&1
 		debsums -e | ag -v 'OK'
 		;;
-	centos | fedora | rhel)
+	"centos" | "rhel fedora" | "rhel")
 		rpm -Va
 		;;
 	*)
@@ -57,7 +86,7 @@ echo -e "uptime: \t" $(uptime | awk -F ',' '{print $1}')
 #cpu信息
 echo -e "CPU info:\t" $(cat /proc/cpuinfo | ag -o '(?<=model name\t: ).*' | head -n 1)
 # ipaddress
-ipaddress=$(ifconfig | ag -o '(?<=inet addr:)\d+\.\d+\.\d+\.\d+' | ag -v '127.0.0.1') >/dev/null 2>&1
+ipaddress=$(ifconfig | ag -o '(?<=inet |inet addr:)\d+\.\d+\.\d+\.\d+' | ag -v '127.0.0.1') >/dev/null 2>&1
 echo -e "IPADDR:\t\t${ipaddress}" | sed ":a;N;s/\n/ /g;ta"
 echo -e "\n"
 
@@ -151,7 +180,7 @@ cmdline=(
 
 for prog in "${cmdline[@]}"; do
 	soft=$($prog)
-	if [ "$soft" ]; then
+	if [ "$soft" ] 2>/dev/null; then
 		echo -e "$soft" | ag -o '\w+$' --nocolor
 	fi
 done
@@ -188,15 +217,15 @@ echo -e "\n"
 last
 echo -e "\n"
 lastlog
-echo "登陆ip:" $(ag -a accepted /var/log/auth.* | ag -o '\d+\.\d+\.\d+\.\d+' | sort | uniq)
+echo "登陆ip:" $(ag -a accepted /var/log/secure /var/log/auth.* 2>/dev/null | ag -o '\d+\.\d+\.\d+\.\d+' | sort | uniq)
 echo -e "\n"
 #运行服务
 echo -e "\e[00;31m[+]Service \e[00m"
 case ${ID_LIKE} in
-debian | ubuntu | devuan)
+"debian" | "ubuntu" | "devuan")
 	service --status-all | ag -Q '+' --nocolor
 	;;
-centos | fedora | rhel)
+"centos" | "rhel fedora" | "rhel")
 	service --status-all | ag -Q 'is running' --nocolor
 	;;
 *)
@@ -277,7 +306,7 @@ rkhuntercheck() {
 		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 	else
 		wget 'https://astuteinternet.dl.sourceforge.net/project/rkhunter/rkhunter/1.4.6/rkhunter-1.4.6.tar.gz' -O /tmp/rkhunter.tar.gz >/dev/null 2>&1
-		tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
+		tar -zxvf /tmp/rkhunter.tar.gz >/dev/null 2>&1
 		cd /tmp/rkhunter-1.4.6/
 		./installer.sh --install >/dev/null 2>&1
 		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
