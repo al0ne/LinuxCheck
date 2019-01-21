@@ -15,7 +15,7 @@ source /etc/os-release
 if ag -V >/dev/null 2>&1; then
 	echo -n
 else
-	case ${ID_LIKE} in
+	case ${ID} in
 	"debian" | "ubuntu" | "devuan")
 		apt-get -y install silversearcher-ag >/dev/null 2>&1
 		;;
@@ -32,7 +32,7 @@ fi
 if ifconfig >/dev/null 2>&1; then
 	echo -n
 else
-	case ${ID_LIKE} in
+	case ${ID} in
 	"centos" | "rhel fedora" | "rhel")
 		yum -y install net-tools >/dev/null 2>&1
 		;;
@@ -46,7 +46,7 @@ fi
 if lsof >/dev/null 2>&1; then
 	echo -n
 else
-	case ${ID_LIKE} in
+	case ${ID} in
 	"centos" | "rhel fedora" | "rhel")
 		yum -y install lsof >/dev/null 2>&1
 		;;
@@ -60,7 +60,7 @@ echo -e "\e[00;31m[+]系统改动\e[00m"
 if debsums --help >/dev/null 2>&1; then
 	debsums -e | ag -v 'OK'
 else
-	case ${ID_LIKE} in
+	case ${ID} in
 	"debian" | "ubuntu" | "devuan")
 		apt install -y debsums >/dev/null 2>&1
 		debsums -e | ag -v 'OK'
@@ -221,7 +221,7 @@ echo "登陆ip:" $(ag -a accepted /var/log/secure /var/log/auth.* 2>/dev/null | 
 echo -e "\n"
 #运行服务
 echo -e "\e[00;31m[+]Service \e[00m"
-case ${ID_LIKE} in
+case ${ID} in
 "debian" | "ubuntu" | "devuan")
 	service --status-all | ag -Q '+' --nocolor
 	;;
