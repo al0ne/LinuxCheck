@@ -268,6 +268,10 @@ echo -e "\n"
 echo -e "\e[00;31m[+]/tmp \e[00m"
 ls /tmp /var/tmp /dev/shm -alh
 echo -e "\n"
+#alias 别名
+echo -e "\e[00;31m[+]alias \e[00m"
+alias|ag -v 'git'
+echo -e "\n"
 #SUID
 echo -e "\e[00;31m[+]SUID \e[00m"
 find / ! -path "/proc/*" -perm -004000 -type f | ag -v 'snap|docker'
