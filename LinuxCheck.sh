@@ -238,7 +238,7 @@ echo -e "\e[00;31m[+]History\e[00m"
 ls -la ~/.*_history
 ls -la /root/.*_history
 echo -e "\n"
-cat ~/.*history | ag '[12](?:[0-9]{1,2})?\.[12](?:[0-9]{1,2})?\.[12](?:[0-9]{1,2})?\.[12](?:[0-9]{1,2})?|http://'
+cat ~/.*history | ag '(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])|http://|https://' --nocolor
 echo -e "\n"
 #HOSTS
 echo -e "\e[00;31m[+]/etc/hosts \e[00m"
@@ -282,11 +282,11 @@ lsof +L1
 echo -e "\n"
 #近7天改动
 echo -e "\e[00;31m[+]近七天文件改动 \e[00m"
-find /etc /bin /sbin /dev /root/ /home /tmp /var /usr -mtime -7 -type f | ag -v 'cache|vim|/share/|/lib/' | xargs -i{} ls -alh {}
+find /etc /bin /sbin /dev /root/ /home /tmp -mtime -7 -type f | ag -v 'cache|vim|/share/|/lib/|.zsh|.gem' | xargs -i{} ls -alh {}
 echo -e "\n"
 #大文件>200mb
 echo -e "\e[00;31m[+]大文件>200mb \e[00m"
-find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +200M -print 2>/dev/null | xargs -i{} ls -alh {} | ag '\.gif|\.jpeg|\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.txt|\.tar|\.db|/\w+$' --nocolor
+find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +100M -print 2>/dev/null | xargs -i{} ls -alh {} | ag '\.gif|\.jpeg|\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.1|\.txt|\.tar|\.db|/\w+$' --nocolor
 echo -e "\n"
 #lsmod 查看模块
 echo -e "\e[00;31m[+]lsmod模块\e[00m"
