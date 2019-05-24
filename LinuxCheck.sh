@@ -299,6 +299,10 @@ echo -e "\n"
 echo -e "\e[00;31m[+]大文件>100mb \e[00m"
 find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +100M -print 2>/dev/null | xargs -i{} ls -alh {} | ag '\.gif|\.jpeg|\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.1|\.txt|\.tar|\.db|/\w+$' --nocolor
 echo -e "\n"
+#敏感文件
+echo -e "\e[00;31m[+]敏感文件 \e[00m"
+find . -regextype posix-extended -regex '.*sqlmap|.*msfconsole|.*\bncat|.*\bnmap|.*nikto|.*ettercap|.*backdoor|.*tunnel\..*|.*\bnc|.*socks.(php|jsp|asp|py)|.*proxy.(php|jsp|asp|py)|.*brook.*|.*frps|.*frpc'
+echo -e "\n"
 #lsmod 查看模块
 echo -e "\e[00;31m[+]lsmod模块\e[00m"
 sudo lsmod
