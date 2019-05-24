@@ -97,9 +97,12 @@ awk '$0 ~/cpu[0-9]/' /proc/stat 2>/dev/null | while read line; do
         "Used " (total-free)/total*100"%"}'
 done
 echo -e "\n"
-#CPU占用
+#CPU占用TOP 10
 cpu=$(ps aux | grep -v ^'USER' | sort -rn -k3 | head -10) 2>/dev/null
 echo -e "\e[00;31m[+]CPU TOP10:  \e[00m\n${cpu}\n"
+#内存占用TOP 10
+cpu=$(ps aux | grep -v ^'USER' | sort -rn -k3 | head -10) 2>/dev/null
+echo -e "\e[00;31m[+]内存占用 TOP10:  \e[00m\n${cpu}\n"
 #内存占用
 echo -e "\e[00;31m[+]内存占用\e[00m"
 free -mh
@@ -134,6 +137,10 @@ echo -e "\n"
 #网络连接
 echo -e "\e[00;31m[+]网络连接\e[00m"
 netstat -antop | ag ESTAB --nocolor
+echo -e "\n"
+#连接状态
+echo -e "\e[00;31m[+]TCP连接状态\e[00m"
+netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
 echo -e "\n"
 #路由表
 echo -e "\e[00;31m[+]路由表\e[00m"
