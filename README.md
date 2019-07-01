@@ -38,7 +38,8 @@
 
 ### Usage
 apt-get install silversearcher-ag  
-bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/LinuxCheck.sh)"
+bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/LinuxCheck.sh)"  
+文件会保存成ipaddr_hostname_username_timestamp.log 这种格式
 
 ### 参考
 
