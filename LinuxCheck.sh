@@ -1,20 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo ""
 echo " ========================================================= "
-echo " \                 Linux信息搜集脚本 V1.2                / "
+echo " \                 Linux信息搜集脚本 V1.3                / "
 echo " ========================================================= "
 echo " # 支持Centos、Debian系统检测                    "
 echo " # author：al0ne                    "
 echo " # https://github.com/al0ne                    "
 echo -e "\n"
+
+# 设置保存文件
+interface=$(cat /etc/network/interfaces|ag '(?<=\biface\b).*(?=\binet\b)'|ag -v 'lo|docker'|awk '{print $2}'|head -n 1)
+ipaddress=$(ifconfig $interface| ag -o '(?<=inet |inet addr:)\d+\.\d+\.\d+\.\d+' | ag -v '127.0.0.1')
+filename=$ipaddress'_'`hostname`'_'`whoami`'_'`date +%s`'.log'
+
+echo -e "\e[00;31m[+]环境检测\e[00m"
+# 验证是否为root权限
 if [ $UID -ne 0 ]; then
-	echo "请使用root权限运行！！！"
+	echo -e "\n\e[00;33m请使用root权限运行 \e[00m"
 	exit 1
+else
+    echo -e "\e[00;32m当前为root权限 \e[00m"
 fi
-source /etc/os-release
+
+# 验证操作系统是debian还是centos
+if [ -e "/etc/os-release" ]; then
+    source /etc/os-release
+fi
+
+# 检测ag软件有没有安装
 if ag -V >/dev/null 2>&1; then
-	echo -n
+	echo -e "\e[00;32msilversearcher-ag已安装 \e[00m"
 else
 	case ${ID} in
 	"debian" | "ubuntu" | "devuan")
@@ -24,44 +40,43 @@ else
 		yum -y install the_silver_searcher >/dev/null 2>&1
 		;;
 	*)
+	    echo -e "\e[00;33m请安装silversearcher-ag软件 \e[00m"
 		exit 1
 		;;
 	esac
 
 fi
-#Centos安装net-tools
+
+#ifconfig
 if ifconfig >/dev/null 2>&1; then
-	echo -n
+	echo -e "\e[00;32mifconfig已安装 \e[00m"
 else
 	case ${ID} in
 	"centos" | "rhel fedora" | "rhel")
 		yum -y install net-tools >/dev/null 2>&1
 		;;
 	*)
+	    echo -e "\e[00;33mifconfig不可用\e[00m"
 		exit 1
 		;;
 	esac
 
 fi
 #Centos安装lsof
-if lsof >/dev/null 2>&1; then
-	echo -n
+if lsof -v >/dev/null 2>&1; then
+	echo -e "\e[00;32mlsof已安装 \e[00m"
 else
 	case ${ID} in
 	"centos" | "rhel fedora" | "rhel")
 		yum -y install lsof >/dev/null 2>&1
 		;;
 	*)
+	    echo -e "\e[00;33mlsof命令不可用\e[00m"
 		exit 1
 		;;
 	esac
 
 fi
-
-# 设置保存文件
-interface=$(cat /etc/network/interfaces|ag iface|ag -v 'lo|docker'|awk '{print $2}')
-ipaddress=$(ifconfig $interface| ag -o '(?<=inet |inet addr:)\d+\.\d+\.\d+\.\d+' | ag -v '127.0.0.1')
-filename=$ipaddress'_'`hostname`'_'`whoami`'_'`date +%s`'.log'
 
 echo -e "\e[00;31m[+]系统改动\e[00m" | tee -a $filename
 if debsums --help >/dev/null 2>&1; then
@@ -183,6 +198,9 @@ cmdline=(
 	"which wget"
 	"which mysql"
 	"which redis"
+	"which ssserver"
+	"which vsftpd"
+	"which java"
 	"which apache"
 	"which nginx"
 	"which git"
@@ -243,8 +261,6 @@ case ${ID} in
 	service --status-all | ag -Q 'is running' --nocolor | tee -a $filename
 	;;
 *)
-	exit 1
-	;;
 esac
 echo -e "\n" | tee -a $filename
 #查看history文件
@@ -252,7 +268,7 @@ echo -e "\e[00;31m[+]History\e[00m" | tee -a $filename
 ls -la ~/.*_history | tee -a $filename
 ls -la /root/.*_history | tee -a $filename
 echo -e "\n" | tee -a $filename
-cat ~/.*history | ag '(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])|http://|https://|ssh|scp|tar' --nocolor | tee -a $filename
+cat ~/.*history | ag '(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])|http://|https://|\bssh\b|\bscp\b|\.tar|\bwget\b|\bcurl\b|\bnc\b|\btelnet\b|\bbash\b|\bsh\b|\bchmod\b|\bchown\b' --nocolor | ag -v 'vim\b|cat\b|sed\b|git\b|docker\b|rm\b|touch\b|mv\b' | tee -a $filename
 echo -e "\n" | tee -a $filename
 #HOSTS
 echo -e "\e[00;31m[+]/etc/hosts \e[00m" | tee -a $filename
@@ -312,7 +328,7 @@ find / ! -path "/lib/modules*" ! -path "/usr/src*" ! -path "/snap*" ! -path "/us
 echo -e "\n" | tee -a $filename
 #lsmod 可疑模块
 echo -e "\e[00;31m[+]lsmod 可疑模块\e[00m" | tee -a $filename
-sudo lsmod |ag -v "ablk_helper|ac97_bus|acpi_power_meter|aesni_intel|ahci|ata_generic|ata_piix|auth_rpcgss|binfmt_misc|bluetooth|bnep|bnx2|bridge|cdrom|cirrus|coretemp|crc_t10dif|crc32_pclmul|crc32c_intel|crct10dif_common|crct10dif_generic|crct10dif_pclmul|cryptd|dca|dcdbas|dm_log|dm_mirror|dm_mod|dm_region_hash|drm|drm_kms_helper|drm_panel_orientation_quirks|e1000|ebtable_broute|ebtable_filter|ebtable_nat|ebtables|edac_core|ext4|fb_sys_fops|floppy|fuse|gf128mul|ghash_clmulni_intel|glue_helper|grace|i2c_algo_bit|i2c_core|i2c_piix4|i7core_edac|intel_powerclamp|ioatdma|ip_set|ip_tables|ip6_tables|ip6t_REJECT|ip6t_rpfilter|ip6table_filter|ip6table_mangle|ip6table_nat|ip6table_raw|ip6table_security|ipmi_devintf|ipmi_msghandler|ipmi_si|ipmi_ssif|ipt_MASQUERADE|ipt_REJECT|iptable_filter|iptable_mangle|iptable_nat|iptable_raw|iptable_security|iTCO_vendor_support|iTCO_wdt|jbd2|joydev|kvm|kvm_intel|libahci|libata|libcrc32c|llc|lockd|lpc_ich|lrw|mbcache|megaraid_sas|mfd_core|mgag200|Module|mptbase|mptscsih|mptspi|nf_conntrack|nf_conntrack_ipv4|nf_conntrack_ipv6|nf_defrag_ipv4|nf_defrag_ipv6|nf_nat|nf_nat_ipv4|nf_nat_ipv6|nf_nat_masquerade_ipv4|nfnetlink|nfnetlink_log|nfnetlink_queue|nfs_acl|nfsd|parport|parport_pc|pata_acpi|pcspkr|ppdev|rfkill|sch_fq_codel|scsi_transport_spi|sd_mod|serio_raw|sg|shpchp|snd|snd_ac97_codec|snd_ens1371|snd_page_alloc|snd_pcm|snd_rawmidi|snd_seq|snd_seq_device|snd_seq_midi|snd_seq_midi_event|snd_timer|soundcore|sr_mod|stp|sunrpc|syscopyarea|sysfillrect|sysimgblt|tcp_lp|ttm|tun|uvcvideo|videobuf2_core|videobuf2_memops|videobuf2_vmalloc|videodev|virtio|virtio_balloon|virtio_console|virtio_net|virtio_pci|virtio_ring|virtio_scsi|vmhgfs|vmw_balloon|vmw_vmci|vmw_vsock_vmci_transport|vmware_balloon|vmwgfx|vsock|xfs|xt_CHECKSUM|xt_conntrack|xt_state|raid*|tcpbbr|btrfs|.*diag|psmouse|ufs|linear|msdos|cpuid|veth|xt_tcpudp|xfrm_user|xfrm_algo|xt_addrtype|br_netfilter|input_leds|sch_fq|ib_iser|rdma_cm|iw_cm|ib_cm|ib_core|.*scsi.*|tcp_bbr|pcbc|autofs4|multipath|hfs.*|minix|ntfs|vfat|jfs|usbcore|usb_common|ehci_hcd|uhci_hcd|ecb|crc32c_generic|button|hid|usbhid|evdev|hid_generic|overlay|xt_nat|qnx4" | tee -a $filename
+sudo lsmod |ag -v "ablk_helper|ac97_bus|acpi_power_meter|aesni_intel|ahci|ata_generic|ata_piix|auth_rpcgss|binfmt_misc|bluetooth|bnep|bnx2|bridge|cdrom|cirrus|coretemp|crc_t10dif|crc32_pclmul|crc32c_intel|crct10dif_common|crct10dif_generic|crct10dif_pclmul|cryptd|dca|dcdbas|dm_log|dm_mirror|dm_mod|dm_region_hash|drm|drm_kms_helper|drm_panel_orientation_quirks|e1000|ebtable_broute|ebtable_filter|ebtable_nat|ebtables|edac_core|ext4|fb_sys_fops|floppy|fuse|gf128mul|ghash_clmulni_intel|glue_helper|grace|i2c_algo_bit|i2c_core|i2c_piix4|i7core_edac|intel_powerclamp|ioatdma|ip_set|ip_tables|ip6_tables|ip6t_REJECT|ip6t_rpfilter|ip6table_filter|ip6table_mangle|ip6table_nat|ip6table_raw|ip6table_security|ipmi_devintf|ipmi_msghandler|ipmi_si|ipmi_ssif|ipt_MASQUERADE|ipt_REJECT|iptable_filter|iptable_mangle|iptable_nat|iptable_raw|iptable_security|iTCO_vendor_support|iTCO_wdt|jbd2|joydev|kvm|kvm_intel|libahci|libata|libcrc32c|llc|lockd|lpc_ich|lrw|mbcache|megaraid_sas|mfd_core|mgag200|Module|mptbase|mptscsih|mptspi|nf_conntrack|nf_conntrack_ipv4|nf_conntrack_ipv6|nf_defrag_ipv4|nf_defrag_ipv6|nf_nat|nf_nat_ipv4|nf_nat_ipv6|nf_nat_masquerade_ipv4|nfnetlink|nfnetlink_log|nfnetlink_queue|nfs_acl|nfsd|parport|parport_pc|pata_acpi|pcspkr|ppdev|rfkill|sch_fq_codel|scsi_transport_spi|sd_mod|serio_raw|sg|shpchp|snd|snd_ac97_codec|snd_ens1371|snd_page_alloc|snd_pcm|snd_rawmidi|snd_seq|snd_seq_device|snd_seq_midi|snd_seq_midi_event|snd_timer|soundcore|sr_mod|stp|sunrpc|syscopyarea|sysfillrect|sysimgblt|tcp_lp|ttm|tun|uvcvideo|videobuf2_core|videobuf2_memops|videobuf2_vmalloc|videodev|virtio|virtio_balloon|virtio_console|virtio_net|virtio_pci|virtio_ring|virtio_scsi|vmhgfs|vmw_balloon|vmw_vmci|vmw_vsock_vmci_transport|vmware_balloon|vmwgfx|vsock|xfs|xt_CHECKSUM|xt_conntrack|xt_state|raid*|tcpbbr|btrfs|.*diag|psmouse|ufs|linear|msdos|cpuid|veth|xt_tcpudp|xfrm_user|xfrm_algo|xt_addrtype|br_netfilter|input_leds|sch_fq|ib_iser|rdma_cm|iw_cm|ib_cm|ib_core|.*scsi.*|tcp_bbr|pcbc|autofs4|multipath|hfs.*|minix|ntfs|vfat|jfs|usbcore|usb_common|ehci_hcd|uhci_hcd|ecb|crc32c_generic|button|hid|usbhid|evdev|hid_generic|overlay|xt_nat|qnx4|sb_edac|acpi_cpufreq" | tee -a $filename
 echo -e "\n" | tee -a $filename
 #检查ssh key
 echo -e "\e[00;31m[+]SSH key\e[00m" | tee -a $filename
@@ -327,22 +343,13 @@ echo -e "\n" | tee -a $filename
 echo -e "\e[00;31m[+]PHP webshell查杀\e[00m" | tee -a $filename
 ag --php -l -s 'assert\(|phpspy|c99sh|milw0rm|eval?\(|\(gunerpress|\(base64_decoolcode|spider_bc|shell_exec\(|passthru\(|base64_decode\s?\(|gzuncompress\s?\(|\(\$\$\w+|call_user_func\(|preg_replace_callback\(|preg_replace\(|register_shutdown_function\(|register_tick_function\(|mb_ereg_replace_callback\(|filter_var\(|ob_start\(|usort\(|uksort\(|GzinFlate\s?\(|\$\w+\(\d+\)\.\$\w+\(\d+\)\.|\$\w+=str_replace\(|eval\/\*.*\*\/\(' / | tee -a $filename
 echo -e "\n" | tee -a $filename
-rkhuntercheck() {
-	if rkhunter >/dev/null 2>&1; then
-		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
-	else
-		wget 'https://astuteinternet.dl.sourceforge.net/project/rkhunter/rkhunter/1.4.6/rkhunter-1.4.6.tar.gz' -O /tmp/rkhunter.tar.gz >/dev/null 2>&1
-		tar -zxvf /tmp/rkhunter.tar.gz -C /tmp >/dev/null 2>&1
-		cd /tmp/rkhunter-1.4.6/
-		./installer.sh --install >/dev/null 2>&1
-		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
-
-	fi
-}
-ping -c 1 114.114.114.114 >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-	echo -e "\e[00;31m[+]RKhunter\e[00m" | tee -a $filename
-	rkhuntercheck | tee -a $filename
+#Rkhunter查杀
+echo -e "\e[00;31m[+]Rkhunter查杀\e[00m" | tee -a $filename
+if rkhunter >/dev/null 2>&1; then
+	rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 else
-	echo -e '\n' | tee -a $filename
+	tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
+	cd rkhunter-1.4.6/
+	./installer.sh --install >/dev/null 2>&1
+	rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 fi
