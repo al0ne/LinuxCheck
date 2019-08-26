@@ -37,7 +37,19 @@
 * rkhunter 扫描
 
 ### Usage
-apt-get install silversearcher-ag  
+
+联网状态：
+ - apt-get install silversearcher-ag
+ - yum -y install the_silver_searcher  
+
+离线状态：   
+ - Debian：dpkg -i silversearcher-ag_2.2.0-1+b1_amd64.deb  
+ - Centos：rpm -ivh the_silver_searcher-2.1.0-1.el7.x86_64.rpm  
+
+git clone https://github.com/al0ne/LinuxCheck.git  
+chmod u+x LinuxCheck.sh  
+./LinuxCheck.sh  
+如果已经安装了ag和rkhunter可以直接使用以下命令  
 bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/LinuxCheck.sh)"  
 文件会保存成ipaddr_hostname_username_timestamp.log 这种格式
 
