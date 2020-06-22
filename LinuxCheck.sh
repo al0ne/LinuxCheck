@@ -2,11 +2,12 @@
 
 echo ""
 echo " ========================================================= "
-echo " \                 Linux应急响应/信息搜集脚本 V2.0                / "
+echo " \                 Linux应急响应/信息搜集脚本 V2.1             / "
 echo " ========================================================= "
 echo " # 支持Centos、Debian系统检测                    "
 echo " # author：al0ne                    "
 echo " # https://github.com/al0ne                    "
+echo " # 更新日期：2020年6月20日                    "
 echo -e "\n"
 
 # WEB Path
@@ -16,73 +17,73 @@ webpath='/'
 echo -e "\e[00;31m[+]环境检测\e[00m"
 # 验证是否为root权限
 if [ $UID -ne 0 ]; then
-	echo -e "\n\e[00;33m请使用root权限运行 \e[00m"
-	exit 1
+    echo -e "\n\e[00;33m请使用root权限运行 \e[00m"
+    exit 1
 else
-	echo -e "\e[00;32m当前为root权限 \e[00m"
+    echo -e "\e[00;32m当前为root权限 \e[00m"
 fi
 
 # 验证操作系统是debian系还是centos
 OS='None'
 
 if [ -e "/etc/os-release" ]; then
-	source /etc/os-release
-	case ${ID} in
-	"debian" | "ubuntu" | "devuan")
-		OS='Debian'
-		;;
-	"centos" | "rhel fedora" | "rhel")
-		OS='Centos'
-		;;
-	*) ;;
-	esac
+    source /etc/os-release
+    case ${ID} in
+    "debian" | "ubuntu" | "devuan")
+        OS='Debian'
+        ;;
+    "centos" | "rhel fedora" | "rhel")
+        OS='Centos'
+        ;;
+    *) ;;
+    esac
 fi
 
 if [ $OS = 'None' ]; then
-	if command -v apt-get >/dev/null 2>&1; then
-		OS='Debian'
-	elif command -v yum >/dev/null 2>&1; then
-		OS='Centos'
-	else
-		echo -e "\n不支持这个系统\n"
-		echo -e "已退出"
-		exit 1
-	fi
+    if command -v apt-get >/dev/null 2>&1; then
+        OS='Debian'
+    elif command -v yum >/dev/null 2>&1; then
+        OS='Centos'
+    else
+        echo -e "\n不支持这个系统\n"
+        echo -e "已退出"
+        exit 1
+    fi
 fi
 
 #ifconfig
 if ifconfig >/dev/null 2>&1; then
-	echo -e "\e[00;32mifconfig已安装 \e[00m"
+    echo -e "\e[00;32mifconfig已安装 \e[00m"
 else
-	if [ $OS = 'Centos' ]; then
-		yum -y install net-tools >/dev/null 2>&1
-	else
-		apt-get -y install net-tools >/dev/null 2>&1
-	fi
+    if [ $OS = 'Centos' ]; then
+        yum -y install net-tools >/dev/null 2>&1
+    else
+        apt-get -y install net-tools >/dev/null 2>&1
+    fi
 
 fi
 
 #Centos安装lsof
 if lsof -v >/dev/null 2>&1; then
-	echo -e "\e[00;32mlsof已安装 \e[00m"
+    echo -e "\e[00;32mlsof已安装 \e[00m"
 else
-	if [ $OS = 'Centos' ]; then
-		yum -y install lsof >/dev/null 2>&1
-	else
-		apt-get -y install lsof >/dev/null 2>&1
-	fi
+    if [ $OS = 'Centos' ]; then
+        yum -y install lsof >/dev/null 2>&1
+    else
+        apt-get -y install lsof >/dev/null 2>&1
+    fi
 
 fi
 
 # 检测ag软件有没有安装
 if ag -V >/dev/null 2>&1; then
-	echo -e "\e[00;32msilversearcher-ag已安装 \e[00m"
+    echo -e "\e[00;32msilversearcher-ag已安装 \e[00m"
 else
-	if [ $OS = 'Centos' ]; then
-		yum -y install the_silver_searcher >/dev/null 2>&1
-	else
-		apt-get -y install silversearcher-ag >/dev/null 2>&1
-	fi
+    if [ $OS = 'Centos' ]; then
+        yum -y install the_silver_searcher >/dev/null 2>&1
+    else
+        apt-get -y install silversearcher-ag >/dev/null 2>&1
+    fi
 
 fi
 
@@ -96,10 +97,10 @@ filename=$ipaddress'_'$(hostname)'_'$(whoami)'_'$(date +%s)'.log'
 #对比hash，看看有没有系统文件被替换掉
 echo -e "\e[00;31m[+]系统改动\e[00m" | tee -a $filename
 if [ $OS = 'Centos' ]; then
-	rpm -Va | tee -a $filename
+    rpm -Va | tee -a $filename
 else
-	apt install -y debsums >/dev/null 2>&1
-	debsums -e | ag -v 'OK' | tee -a $filename
+    apt install -y debsums >/dev/null 2>&1
+    debsums -e | ag -v 'OK' | tee -a $filename
 fi
 
 echo -e "\n" | tee -a $filename
@@ -121,7 +122,7 @@ echo -e "\n" | tee -a $filename
 
 echo -e "\e[00;31m[+]CPU使用率:  \e[00m" | tee -a $filename
 awk '$0 ~/cpu[0-9]/' /proc/stat 2>/dev/null | while read line; do
-	echo "$line" | awk '{total=$2+$3+$4+$5+$6+$7+$8;free=$5;\
+    echo "$line" | awk '{total=$2+$3+$4+$5+$6+$7+$8;free=$5;\
         print$1" Free "free/total*100"%",\
         "Used " (total-free)/total*100"%"}' | tee -a $filename
 done
@@ -155,8 +156,8 @@ echo -e "\n" | tee -a $filename
 echo -e "\e[00;31m[+]网络流量 \e[00m" | tee -a $filename
 echo "Interface    ByteRec   PackRec   ByteTran   PackTran" | tee -a $filename
 awk ' NR>2' /proc/net/dev | while read line; do
-	echo "$line" | awk -F ':' '{print "  "$1"  " $2}' | \
-	awk '{print $1"   "$2 "    "$3"   "$10"  "$11}' | tee -a $filename
+    echo "$line" | awk -F ':' '{print "  "$1"  " $2}' |
+        awk '{print $1"   "$2 "    "$3"   "$10"  "$11}' | tee -a $filename
 done
 echo -e "\n" | tee -a $filename
 #端口监听
@@ -183,9 +184,9 @@ echo -e "\n" | tee -a $filename
 echo -e "\e[00;31m[+]路由转发\e[00m" | tee -a $filename
 ip_forward=$(more /proc/sys/net/ipv4/ip_forward | awk -F: '{if ($1==1) print "1"}')
 if [ -n "$ip_forward" ]; then
-	echo "/proc/sys/net/ipv4/ip_forward 已开启路由转发" | tee -a $filename
+    echo "/proc/sys/net/ipv4/ip_forward 已开启路由转发" | tee -a $filename
 else
-	echo "该服务器未开启路由转发" | tee -a $filename
+    echo "该服务器未开启路由转发" | tee -a $filename
 fi
 echo -e "\n" | tee -a $filename
 #DNS
@@ -199,49 +200,49 @@ echo -e "\n" | tee -a $filename
 #混杂模式
 echo -e "\e[00;31m[+]网卡混杂模式\e[00m" | tee -a $filename
 if ip link | ag PROMISC >/dev/null 2>&1; then
-	echo "网卡存在混杂模式！" | tee -a $filename
+    echo "网卡存在混杂模式！" | tee -a $filename
 else
-	echo "网卡不存在混杂模式" | tee -a $filename
+    echo "网卡不存在混杂模式" | tee -a $filename
 
 fi
 echo -e "\n" | tee -a $filename
 #安装软件
 echo -e "\e[00;31m[+]常用软件\e[00m" | tee -a $filename
 cmdline=(
-	"which perl"
-	"which gcc"
-	"which g++"
-	"which python"
-	"which php"
-	"which cc"
-	"which go"
-	"which node"
-	"which nodejs"
-	"which bind"
-	"which tomcat"
-	"which clang"
-	"which ruby"
-	"which curl"
-	"which wget"
-	"which mysql"
-	"which redis"
-	"which ssserver"
-	"which vsftpd"
-	"which java"
-	"which apache"
-	"which nginx"
-	"which git"
-	"which mongodb"
-	"which docker"
-	"which tftp"
-	"which psql"
+    "which perl"
+    "which gcc"
+    "which g++"
+    "which python"
+    "which php"
+    "which cc"
+    "which go"
+    "which node"
+    "which nodejs"
+    "which bind"
+    "which tomcat"
+    "which clang"
+    "which ruby"
+    "which curl"
+    "which wget"
+    "which mysql"
+    "which redis"
+    "which ssserver"
+    "which vsftpd"
+    "which java"
+    "which apache"
+    "which nginx"
+    "which git"
+    "which mongodb"
+    "which docker"
+    "which tftp"
+    "which psql"
 )
 
 for prog in "${cmdline[@]}"; do
-	soft=$($prog)
-	if [ "$soft" ] 2>/dev/null; then
-		echo -e "$soft" | ag -o '\w+$' --nocolor | tee -a $filename
-	fi
+    soft=$($prog)
+    if [ "$soft" ] 2>/dev/null; then
+        echo -e "$soft" | ag -o '\w+$' --nocolor | tee -a $filename
+    fi
 done
 echo -e "\n" | tee -a $filename
 #crontab
@@ -277,9 +278,9 @@ echo -e "\n" | tee -a $filename
 echo -e "\e[00;31m[+]ld.so.preload\e[00m" | tee -a $filename
 preload='/etc/ld.so.preload'
 if [ -e "${preload}" ]; then
-	cat ${preload} | tee -a $filename
+    cat ${preload} | tee -a $filename
 else
-	echo -e "/etc/ld.so.preload 文件不存在" | tee -a $filename
+    echo -e "/etc/ld.so.preload 文件不存在" | tee -a $filename
 fi
 echo -e "\n" | tee -a $filename
 #passwd信息
@@ -307,14 +308,19 @@ echo "登陆ip:" $(ag -a accepted /var/log/secure /var/log/auth.* 2>/dev/null | 
 echo -e "\n" | tee -a $filename
 #SSH爆破IP
 echo -e "\e[00;31m[+]SSH爆破\e[00m" | tee -a $filename
-ag -a 'authentication failure' /var/log/auth.* | awk '{print $14}' | awk -F '=' '{print $2}' | ag '\d+\.\d+\.\d+\.\d+' | sort | uniq -c | sort -nr | head -n 25
+if [ $OS = 'Centos' ]; then
+    ag -a 'authentication failure' /var/log/secure* | awk '{print $14}' | awk -F '=' '{print $2}' | ag '\d+\.\d+\.\d+\.\d+' | sort | uniq -c | sort -nr | head -n 25
+else
+    ag -a 'authentication failure' /var/log/auth.* | awk '{print $14}' | awk -F '=' '{print $2}' | ag '\d+\.\d+\.\d+\.\d+' | sort | uniq -c | sort -nr | head -n 25
+
+fi
 echo -e "\n" | tee -a $filename
 #运行服务
 echo -e "\e[00;31m[+]Service \e[00m" | tee -a $filename
 if [ $OS = 'Centos' ]; then
-	service --status-all | ag -Q 'is running' --nocolor | tee -a $filename
+s    systemctl -l|grep running|awk '{print $1}' | tee -a $filename
 else
-	service --status-all | ag -Q '+' --nocolor | tee -a $filename
+    service --status-all | ag -Q '+' --nocolor | tee -a $filename
 fi
 echo -e "\n" | tee -a $filename
 #查看history文件
@@ -322,7 +328,7 @@ echo -e "\e[00;31m[+]History\e[00m" | tee -a $filename
 ls -alht ~/.*_history | tee -a $filename
 ls -alht /root/.*_history | tee -a $filename
 echo -e "\n" | tee -a $filename
-cat ~/.*history | ag '(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])|http://|https://|\bssh\b|\bscp\b|\.tar|\bwget\b|\bcurl\b|\bnc\b|\btelnet\b|\bbash\b|\bsh\b|\bchmod\b|\bchown\b|/etc/passwd|/etc/shadow|/etc/hosts|\bnmap\b|\bfrpc\b' --nocolor | ag -v 'man\b|ag\b|cat\b|sed\b|git\b|docker\b|rm\b|touch\b|mv\b|\bapt\b|\bapt-get\b' | tee -a $filename
+cat ~/.*history | ag '(?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2}))(?![0-9])|http://|https://|\bssh\b|\bscp\b|\.tar|\bwget\b|\bcurl\b|\bnc\b|\btelnet\b|\bbash\b|\bsh\b|\bchmod\b|\bchown\b|/etc/passwd|/etc/shadow|/etc/hosts|\bnmap\b|\bfrp\b|\bnfs\b|\bsshd\b|\bmodprobe\b|\blsmod\b|\bsudo\b' --nocolor | ag -v 'man\b|ag\b|cat\b|sed\b|git\b|docker\b|rm\b|touch\b|mv\b|\bapt\b|\bapt-get\b' | tee -a $filename
 echo -e "\n" | tee -a $filename
 #HOSTS
 echo -e "\e[00;31m[+]/etc/hosts \e[00m" | tee -a $filename
@@ -385,8 +391,8 @@ find /etc /bin /lib /sbin /dev /root/ /home /tmp /opt /var ! -path "/var/log*" !
 echo -e "\n" | tee -a $filename
 #大文件100mb
 #有些黑客会将数据库、网站打包成一个文件然后下载
-echo -e "\e[00;31m[+]大文件>100mb \e[00m" | tee -a $filename
-find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +100M -print 2>/dev/null | xargs -i{} ls -alh {} | ag '\.gif|\.jpeg|\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.1|\.txt|\.tar|\.db|/\w+$' --nocolor | ag -v ib_logfile | tee -a $filename
+echo -e "\e[00;31m[+]大文件>200mb \e[00m" | tee -a $filename
+find / ! -path "/proc/*" ! -path "/sys/*" ! -path "/run/*" ! -path "/boot/*" -size +200M -print 2>/dev/null | xargs -i{} ls -alh {} | ag '\.gif|\.jpeg|\.jpg|\.png|\.zip|\.tar.gz|\.tgz|\.7z|\.log|\.xz|\.rar|\.bak|\.old|\.sql|\.1|\.txt|\.tar|\.db|/\w+$' --nocolor | ag -v 'ib_logfile|ibd｜mysql-bin｜mysql-slow｜ibdata1' | tee -a $filename
 echo -e "\n" | tee -a $filename
 #敏感文件
 echo -e "\e[00;31m[+]敏感文件 \e[00m" | tee -a $filename
@@ -394,15 +400,24 @@ find / ! -path "/lib/modules*" ! -path "/usr/src*" ! -path "/snap*" ! -path "/us
 echo -e "\n" | tee -a $filename
 #lsmod 可疑模块
 echo -e "\e[00;31m[+]lsmod 可疑模块\e[00m" | tee -a $filename
-lsmod | ag -v "ablk_helper|ac97_bus|acpi_power_meter|aesni_intel|ahci|ata_generic|ata_piix|auth_rpcgss|binfmt_misc|bluetooth|bnep|bnx2|bridge|cdrom|cirrus|coretemp|crc_t10dif|crc32_pclmul|crc32c_intel|crct10dif_common|crct10dif_generic|crct10dif_pclmul|cryptd|dca|dcdbas|dm_log|dm_mirror|dm_mod|dm_region_hash|drm|drm_kms_helper|drm_panel_orientation_quirks|e1000|ebtable_broute|ebtable_filter|ebtable_nat|ebtables|edac_core|ext4|fb_sys_fops|floppy|fuse|gf128mul|ghash_clmulni_intel|glue_helper|grace|i2c_algo_bit|i2c_core|i2c_piix4|i7core_edac|intel_powerclamp|ioatdma|ip_set|ip_tables|ip6_tables|ip6t_REJECT|ip6t_rpfilter|ip6table_filter|ip6table_mangle|ip6table_nat|ip6ta ble_raw|ip6table_security|ipmi_devintf|ipmi_msghandler|ipmi_si|ipmi_ssif|ipt_MASQUERADE|ipt_REJECT|iptable_filter|iptable_mangle|iptable_nat|iptable_raw|iptable_security|iTCO_vendor_support|iTCO_wdt|jbd2|joydev|kvm|kvm_intel|libahci|libata|libcrc32c|llc|lockd|lpc_ich|lrw|mbcache|megaraid_sas|mfd_core|mgag200|Module|mptbase|mptscsih|mptspi|nf_conntrack|nf_conntrack_ipv4|nf_conntrack_ipv6|nf_defrag_ipv4|nf_defrag_ipv6|nf_nat|nf_nat_ipv4|nf_nat_ipv6|nf_nat_masquerade_ipv4|nfnetlink|nfnetlink_log|nfnetlink_queue|nfs_acl|nfsd|parport|parport_pc|pata_acpi|pcspkr|ppdev|rfkill|sch_fq_codel|scsi_transport_spi|sd_mod|serio_raw|sg|shpchp|snd|snd_ac97_codec|snd_ens1371|snd_page_alloc|snd_pcm|snd_rawmidi|snd_seq|snd_seq_device|snd_seq_midi|snd_seq_midi_event|snd_timer|soundcore|sr_mod|stp|sunrpc|syscopyarea|sysfillrect|sysimgblt|tcp_lp|ttm|tun|uvcvideo|videobuf2_core|videobuf2_memops|videobuf2_vmalloc|videodev|virtio|virtio_balloon|virtio_console|virtio_net|virtio_pci|virtio_ring|virtio_scsi|vmhgfs|vmw_balloon|vmw_vmci|vmw_vsock_vmci_transport|vmware_balloon|vmwgfx|vsock|xfs|xt_CHECKSUM|xt_conntrack|xt_state|raid*|tcpbbr|btrfs|.*diag|psmouse|ufs|linear|msdos|cpuid|veth|xt_tcpudp|xfrm_user|xfrm_algo|xt_addrtype|br_netfilter|input_leds|sch_fq|ib_iser|rdma_cm|iw_cm|ib_cm|ib_core|.*scsi.*|tcp_bbr|pcbc|autofs4|multipath|hfs.*|minix|ntfs|vfat|jfs|usbcore|usb_common|ehci_hcd|uhci_hcd|ecb|crc32c_generic|button|hid|usbhid|evdev|hid_generic|overlay|xt_nat|qnx4|sb_edac|acpi_cpufreq|ixgbe|pf_ring|tcp_htcp|cfg80211|x86_pkg_temp_thermal|mei_me|mei|processor|thermal_sys|lp|enclosure|ses|ehci_pci|igb|i2c_i801|pps_core|isofs|nls_utf8|xt_REDIRECT|xt_multiport" | tee -a $filename
+lsmod | ag -v "ablk_helper|ac97_bus|acpi_power_meter|aesni_intel|ahci|ata_generic|ata_piix|auth_rpcgss|binfmt_misc|bluetooth|bnep|bnx2|bridge|cdrom|cirrus|coretemp|crc_t10dif|crc32_pclmul|crc32c_intel|crct10dif_common|crct10dif_generic|crct10dif_pclmul|cryptd|dca|dcdbas|dm_log|dm_mirror|dm_mod|dm_region_hash|drm|drm_kms_helper|drm_panel_orientation_quirks|e1000|ebtable_broute|ebtable_filter|ebtable_nat|ebtables|edac_core|ext4|fb_sys_fops|floppy|fuse|gf128mul|ghash_clmulni_intel|glue_helper|grace|i2c_algo_bit|i2c_core|i2c_piix4|i7core_edac|intel_powerclamp|ioatdma|ip_set|ip_tables|ip6_tables|ip6t_REJECT|ip6t_rpfilter|ip6table_filter|ip6table_mangle|ip6table_nat|ip6ta ble_raw|ip6table_security|ipmi_devintf|ipmi_msghandler|ipmi_si|ipmi_ssif|ipt_MASQUERADE|ipt_REJECT|iptable_filter|iptable_mangle|iptable_nat|iptable_raw|iptable_security|iTCO_vendor_support|iTCO_wdt|jbd2|joydev|kvm|kvm_intel|libahci|libata|libcrc32c|llc|lockd|lpc_ich|lrw|mbcache|megaraid_sas|mfd_core|mgag200|Module|mptbase|mptscsih|mptspi|nf_conntrack|nf_conntrack_ipv4|nf_conntrack_ipv6|nf_defrag_ipv4|nf_defrag_ipv6|nf_nat|nf_nat_ipv4|nf_nat_ipv6|nf_nat_masquerade_ipv4|nfnetlink|nfnetlink_log|nfnetlink_queue|nfs_acl|nfsd|parport|parport_pc|pata_acpi|pcspkr|ppdev|rfkill|sch_fq_codel|scsi_transport_spi|sd_mod|serio_raw|sg|shpchp|snd|snd_ac97_codec|snd_ens1371|snd_page_alloc|snd_pcm|snd_rawmidi|snd_seq|snd_seq_device|snd_seq_midi|snd_seq_midi_event|snd_timer|soundcore|sr_mod|stp|sunrpc|syscopyarea|sysfillrect|sysimgblt|tcp_lp|ttm|tun|uvcvideo|videobuf2_core|videobuf2_memops|videobuf2_vmalloc|videodev|virtio|virtio_balloon|virtio_console|virtio_net|virtio_pci|virtio_ring|virtio_scsi|vmhgfs|vmw_balloon|vmw_vmci|vmw_vsock_vmci_transport|vmware_balloon|vmwgfx|vsock|xfs|xt_CHECKSUM|xt_conntrack|xt_state|raid*|tcpbbr|btrfs|.*diag|psmouse|ufs|linear|msdos|cpuid|veth|xt_tcpudp|xfrm_user|xfrm_algo|xt_addrtype|br_netfilter|input_leds|sch_fq|ib_iser|rdma_cm|iw_cm|ib_cm|ib_core|.*scsi.*|tcp_bbr|pcbc|autofs4|multipath|hfs.*|minix|ntfs|vfat|jfs|usbcore|usb_common|ehci_hcd|uhci_hcd|ecb|crc32c_generic|button|hid|usbhid|evdev|hid_generic|overlay|xt_nat|qnx4|sb_edac|acpi_cpufreq|ixgbe|pf_ring|tcp_htcp|cfg80211|x86_pkg_temp_thermal|mei_me|mei|processor|thermal_sys|lp|enclosure|ses|ehci_pci|igb|i2c_i801|pps_core|isofs|nls_utf8|xt_REDIRECT|xt_multiport|iosf_mbi|qxl" | tee -a $filename
+echo -e "\n" | tee -a $filename
+#Rootkit 内核模块
+echo -e "\e[00;31m[+]Rootkit 内核模块\e[00m" | tee -a $filename
+kernel=$(cat /proc/kallsyms | egrep 'hide_tcp4_port|hidden_files|hide_tcp6_port')
+if [ -n "$kernel" ]; then
+	echo "存在内核敏感函数！ 疑似Rootkit内核模块" | tee -a $filename
+else
+	echo "未找到内核敏感函数" | tee -a $filename
+fi
 echo -e "\n" | tee -a $filename
 #检查ssh key
 echo -e "\e[00;31m[+]SSH key\e[00m" | tee -a $filename
 sshkey=${HOME}/.ssh/authorized_keys
 if [ -e "${sshkey}" ]; then
-	cat ${sshkey} | tee -a $filename
+    cat ${sshkey} | tee -a $filename
 else
-	echo -e "SSH key文件不存在\n" | tee -a $filename
+    echo -e "SSH key文件不存在\n" | tee -a $filename
 fi
 echo -e "\n" | tee -a $filename
 #PHP webshell查杀
@@ -416,7 +431,7 @@ ag --php -l -s -i "\b(assert|eval|system|exec|shell_exec|passthru|popen|proc_ope
 echo -e "\n" | tee -a $filename
 #JSP webshell查杀
 echo -e "\e[00;31m[+]JSP webshell查杀\e[00m" | tee -a $filename
-ag --jsp -l -s -i '<%@\spage\simport=[\s\S]*\\u00\d+\\u00\d+|<%@\spage\simport=[\s\S]*Runtime.getRuntime\(\).exec\(request.getParameter\(|Runtime.getRuntime\(\)|request\.getParameter' $webpath | tee -a $filename
+ag --jsp -l -s -i '<%@\spage\simport=[\s\S]*\\u00\d+\\u00\d+|<%@\spage\simport=[\s\S]*Runtime.getRuntime\(\).exec\(request.getParameter\(|Runtime.getRuntime\(\)' $webpath | tee -a $filename
 echo -e "\n" | tee -a $filename
 #ASP/ASPX webshell查杀
 echo -e "\e[00;31m[+]ASP/ASPX webshell查杀\e[00m" | tee -a $filename
@@ -424,24 +439,24 @@ ag -G ".+\.asp" -l -i -s '<%@codepage=65000[\s\S]*=936:|<%eval\srequest\(\"|<%@\
 echo -e "\n" | tee -a $filename
 #挖矿木马检测
 echo -e "\e[00;31m[+]挖矿木马检测\e[00m" | tee -a $filename
-ps aux | ag "systemctI|kworkerds|init10.cfg|wl.conf|crond64|watchbog|sustse|donate|proxkekman|test.conf|/var/tmp/apple|/var/tmp/big|/var/tmp/small|/var/tmp/cat|/var/tmp/dog|/var/tmp/mysql|/var/tmp/sishen|ubyx|cpu.c|tes.conf|psping|/var/tmp/java-c|pscf|cryptonight|sustes|xmrig|xmr-stak|suppoie|ririg|/var/tmp/ntpd|/var/tmp/ntp|/var/tmp/qq|/tmp/qq|/var/tmp/aa|gg1.conf|hh1.conf|apaqi|dajiba|/var/tmp/look|/var/tmp/nginx|dd1.conf|kkk1.conf|ttt1.conf|ooo1.conf|ppp1.conf|lll1.conf|yyy1.conf|1111.conf|2221.conf|dk1.conf|kd1.conf|mao1.conf|YB1.conf|2Ri1.conf|3Gu1.conf|crant|nicehash|linuxs|linuxl|Linux|crawler.weibo|stratum|gpg-daemon|jobs.flu.cc|cranberry|start.sh|watch.sh|krun.sh|killTop.sh|cpuminer|/60009|ssh_deny.sh|clean.sh|\./over|mrx1|redisscan|ebscan|barad_agent|\.sr0|clay|udevs|\.sshd|/tmp/init|xmr|xig|ddgs|minerd|hashvault|geqn|\.kthreadd|httpdz|pastebin.com|sobot.com|kerbero" | ag -v 'ag' | tee -a $filename
+ps aux | ag "systemctI|kworkerds|init10.cfg|wl.conf|crond64|watchbog|sustse|donate|proxkekman|test.conf|/var/tmp/apple|/var/tmp/big|/var/tmp/small|/var/tmp/cat|/var/tmp/dog|/var/tmp/mysql|/var/tmp/sishen|ubyx|cpu.c|tes.conf|psping|/var/tmp/java-c|pscf|cryptonight|sustes|xmrig|xmr-stak|suppoie|ririg|/var/tmp/ntpd|/var/tmp/ntp|/var/tmp/qq|/tmp/qq|/var/tmp/aa|gg1.conf|hh1.conf|apaqi|dajiba|/var/tmp/look|/var/tmp/nginx|dd1.conf|kkk1.conf|ttt1.conf|ooo1.conf|ppp1.conf|lll1.conf|yyy1.conf|1111.conf|2221.conf|dk1.conf|kd1.conf|mao1.conf|YB1.conf|2Ri1.conf|3Gu1.conf|crant|nicehash|linuxs|linuxl|Linux|crawler.weibo|stratum|gpg-daemon|jobs.flu.cc|cranberry|start.sh|watch.sh|krun.sh|killTop.sh|cpuminer|/60009|ssh_deny.sh|clean.sh|\./over|mrx1|redisscan|ebscan|barad_agent|\.sr0|clay|udevs|\.sshd|/tmp/init|xmr|xig|ddgs|minerd|hashvault|geqn|\.kthreadd|httpdz|pastebin.com|sobot.com|kerbero|2t3ik|ddgs|qW3xt|ztctb" | ag -v 'ag' | tee -a $filename
 echo -e "\n" | tee -a $filename
 #Rkhunter查杀
 echo -e "\e[00;31m[+]Rkhunter查杀\e[00m" | tee -a $filename
 if rkhunter >/dev/null 2>&1; then
-	rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
+    rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
 else
-	if [ -e "rkhunter.tar.gz" ]; then
-		tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
-		cd rkhunter-1.4.6/
-		./installer.sh --install >/dev/null 2>&1
-		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
-	else
-		echo -e "找不到rkhunter.tar.gz尝试下载"
-		wget https://github.com/al0ne/LinuxCheck/raw/master/rkhunter.tar.gz >/dev/null 2>&1;
-		tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
-		cd rkhunter-1.4.6/
-		./installer.sh --install >/dev/null 2>&1
-		rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
-	fi
+    if [ -e "rkhunter.tar.gz" ]; then
+        tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
+        cd rkhunter-1.4.6/
+        ./installer.sh --install >/dev/null 2>&1
+        rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
+    else
+        echo -e "找不到rkhunter.tar.gz尝试下载"
+        wget https://github.com/al0ne/LinuxCheck/raw/master/rkhunter.tar.gz >/dev/null 2>&1
+        tar -zxvf rkhunter.tar.gz >/dev/null 2>&1
+        cd rkhunter-1.4.6/
+        ./installer.sh --install >/dev/null 2>&1
+        rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
+    fi
 fi
