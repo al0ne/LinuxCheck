@@ -1,59 +1,90 @@
 # LinuxCheck
 
-###
-一个linux信息搜集小脚本 主要用于应急响应，在Debian或Centos下都可使用
+linux系统自动化应急响应工具，支持基础配置/网络流量/任务计划/环境变量/用户信息/Services/bash/恶意文件/内核Rootkit/SSH/Webshell/挖矿文件/挖矿进程检查等12类70项检查
 ### 功能
 
-* CPU TOP10 、内存 TOP10
-* CPU使用率
-* 开机时间
-* 硬盘空间信息
-* 用户信息、passwd信息
-* 环境变量检测
-* 服务列表
-* 系统程序改动（debsums -e与rpm -va）
-* 网络流量统计
-* 网络连接、监听端口
-* 对外开放端口
-* 路由表信息
-* 路由转发
-* ARP
-* DNS Server
-* SSH登陆信息
-* SSH登陆IP
-* iptables 信息
-* SSH key 检测
-* SSH 爆破IP
-* Crontab 检测
-* Crontab 后门检测
-* 查找常见配置文件
-* 查找常用软件
-* 审计history文件
-* 查询HOSTS文件
-* lsmod 异常内核模块
-* 异常文件检测（nc、tunnel、proxy常见黑客工具）
-* 大文件检测（打包的一些大文件）
-* 剩余空间、硬盘挂载
-* 对外开放端口
-* LD_PRELOAD 检测
-* LD_LIBRARY_PATH
-* ld.so.preload
-* 网卡混杂模式
-* 常用软件
-* 近7天改动文件mtime
-* 近7天改动文件ctime
-* 查看SUID文件
-* 查找..隐藏文件
-* 查找敏感文件（nc、nmap、tunnel）
-* alias别名
-* LSOF -L1
-* SSHD
-* 查找bash反弹shell
-* php webshell扫描
-* jsp webshell扫描
-* asp/aspx webshell扫描
-* 挖矿进程检测
-* rkhunter 扫描
+* 基础配置检查
+    * 系统配置改动检查
+    * 系统信息（IP地址/用户/开机时间/系统版本/Hostname）
+    * CPU使用率
+    * 登录用户信息
+    * CPU TOP 15
+    * 内存 TOP 15
+    * 磁盘剩余空间检查
+    * 硬盘挂载
+    * 常用软件检查
+    * /etc/hots
+* 网络/流量检查
+    * ifconfig
+    * 网络流量
+    * 端口监听
+    * 对外开放端口
+    * 网络连接
+    * TCP连接状态
+    * 路由表
+    * 路由转发
+    * DNS Server
+    * ARP
+    * 网卡混杂模式检查
+    * iptables 防火墙
+* 任务计划检查
+    * 当前用户任务计划
+    * /etc/系统任务计划
+    * 任务计划文件创建时间
+    * crontab 后门排查
+* 环境变量检查
+    * env
+    * path
+    * LD_PRELOAD
+    * LD_ELF_PRELOAD
+    * LD_AOUT_PRELOAD
+    * PROMPT_COMMAND
+    * LD_LIBRARY_PATH
+    * ld.so.preload
+* 用户信息检查
+    * 可登陆用户
+    * passwd文件修改日期
+    * sudoers
+    * 登录信息（w/last/lastlog）
+    * 历史登陆ip
+* Services 检查
+    * SystemD运行服务
+    * SystemD服务创建时间
+* bash检查
+    * History
+    * History命令审计
+    * /etc/profile
+    * /etc/rc.local
+    * ~/.bash_profile
+    * ~/.bashrc
+    * bash反弹shell
+* 文件检查
+    * ...隐藏文件
+    * 临时文件检查（/tmp /var/tmp /dev/shm）
+    * alias
+    * suid特殊权限检查
+    * 进程存在文件未找到
+    * 近七天文件改动 mtime
+    * 近七天文件改动 ctime
+    * 大文件>200mb
+    * 敏感文件审计（nmap/sqlmap/ew/frp/nps等黑客常用工具）
+* 内核Rootkit 检查
+    * lsmod 可疑模块
+    * 内核符号表检查
+    * rootkit hunter 检查
+* SSH检查
+    * SSH 爆破
+    * SSHD
+    * SSH 后门配置
+    * SSH inetd后门检查
+    * SSH key
+* Webshell 检查
+    * asp/aspx webshell检查
+    * php webshell检查
+    * jsp webshell检查
+* 挖矿文件/进程检查
+    * 挖矿文件检查
+    * 挖矿进程检查
 
 ### Usage
 
@@ -74,8 +105,10 @@ bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/L
 
 ### 参考
 
+此工具的编写主要参考了以下几款工具/文章并结合个人经验完成
+
 Linenum    
-https://github.com/lis912/Evaluation_tools   
-https://ixyzero.com/blog/archives/4.html    
-https://github.com/T0xst/linux  
-https://github.com/grayddq/GScan  
+https://github.com/lis912/Evaluation_tools
+https://ixyzero.com/blog/archives/4.html
+https://github.com/T0xst/linux 
+https://github.com/grayddq/GScan
