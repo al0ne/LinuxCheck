@@ -75,17 +75,16 @@ for prog in "${cmdline[@]}"; do
 
   if [ $OS = 'Centos' ]; then
     soft=$(rpm -q "$prog")
-  else
-    soft=$(dpkg -s "$prog" >/dev/null 2>&1)
-  fi
-
-  if echo "$soft" | grep -E '没有安装|未安装|not installed' >/dev/null 2>&1; then
-    echo -e "$prog 安装中......"
-    if [ $OS = 'Centos' ]; then
+    if echo "$soft" | grep -E '没有安装|未安装|not installed' >/dev/null 2>&1; then
+      echo -e "$prog 安装中......"
       yum install -y "$prog" >/dev/null 2>&1
-    else
+    fi
+  else
+    if dpkg -L $prog | grep 'does not contain any files' >/dev/null 2>&1; then
+      echo -e "$prog 安装中......"
       apt install -y "$prog" >/dev/null 2>&1
     fi
+
   fi
 done
 
@@ -299,10 +298,6 @@ env_check() {
   #LD_AOUT_PRELOAD
   echo -e "\e[00;31m[+]LD_AOUT_PRELOAD\e[00m" | tee -a "$filename"
   echo ${LD_AOUT_PRELOAD} | tee -a "$filename"
-  echo -e "\n" | tee -a "$filename"
-  #LD_ELF_PRELOAD
-  echo -e "\e[00;31m[+]LD_ELF_PRELOAD\e[00m" | tee -a "$filename"
-  echo "${LD_ELF_PRELOAD}" | tee -a "$filename"
   echo -e "\n" | tee -a "$filename"
   #PROMPT_COMMAND
   echo -e "\e[00;31m[+]PROMPT_COMMAND\e[00m" | tee -a "$filename"
