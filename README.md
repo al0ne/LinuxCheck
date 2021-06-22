@@ -108,7 +108,7 @@ bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/L
 此工具的编写主要参考了以下几款工具/文章并结合个人经验完成
 
 Linenum    
-https://github.com/lis912/Evaluation_tools
-https://ixyzero.com/blog/archives/4.html
-https://github.com/T0xst/linux 
-https://github.com/grayddq/GScan
+https://github.com/lis912/Evaluation_tools  
+https://ixyzero.com/blog/archives/4.html  
+https://github.com/T0xst/linux   
+https://github.com/grayddq/GScan  
