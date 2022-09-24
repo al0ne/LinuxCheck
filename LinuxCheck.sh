@@ -7,30 +7,38 @@ echo " ========================================================= "
 echo " # 支持Centos、Debian系统检测                    "
 echo " # author：al0ne                    "
 echo " # https://github.com/al0ne                    "
-echo " # 更新日期：2021年10月17日                    "
+echo " # 更新日期：2022年08月5日                    "
 echo " # 参考来源：                "
 echo " #   1.Gscan https://github.com/grayddq/GScan  "
 echo " #   2.Lynis https://github.com/CISOfy/lynis  "
 echo -e "\n"
 
+# 更新日志：2022年08月05日
+#### 修复内核模块检查日志过多问题
+# 更新日志：2022年03月07日
+#### 添加SSH软连接后门检测
 # 更新日期：2021年10月17日
-# 添加Ntpclient/WorkMiner/TeamTNT挖矿木马检测
-# 添加Rootkit模块检测逻辑
-# 添加Python pip投毒检测
-# 添加$HOME/.profile查看
-# 添加服务器风险检查(Redis)
+#### 添加Ntpclient/WorkMiner/TeamTNT挖矿木马检测
+#### 添加Rootkit模块检测逻辑
+#### 添加Python pip投毒检测
+#### 添加$HOME/.profile查看
+#### 添加服务器风险检查(Redis)
 
 # WEB Path 设置web目录 默认的话是从/目录去搜索 性能较慢
 webpath='/'
 
+print_msg() {
+  echo -e "\e[00;31m[+]$1\e[00m"
+}
+
 ### 1.环境检查 ###
-echo -e "\e[00;31m[+]环境检测\e[00m"
+print_msg "环境检测"
 # 验证是否为root权限
 if [ $UID -ne 0 ]; then
-  echo -e "\n\e[00;33m请使用root权限运行 \e[00m"
+  print_msg "请使用root权限运行!"
   exit 1
 else
-  echo -e "\e[00;32m当前为root权限 \e[00m"
+  print_msg "当前为root权限"
 fi
 
 # 验证操作系统是debian系还是centos
@@ -69,12 +77,11 @@ cmdline=(
   "lrzsz"
   "wget"
   "strace"
+  "traceroute"
   "htop"
   "tar"
   "lsof"
   "tcpdump"
-  "the_silver_searcher"
-  "silversearcher-ag"
 )
 for prog in "${cmdline[@]}"; do
 
@@ -83,11 +90,13 @@ for prog in "${cmdline[@]}"; do
     if echo "$soft" | grep -E '没有安装|未安装|not installed' >/dev/null 2>&1; then
       echo -e "$prog 安装中......"
       yum install -y "$prog" >/dev/null 2>&1
+      yum install -y the_silver_searcher >/dev/null 2>&1
     fi
   else
     if dpkg -L $prog | grep 'does not contain any files' >/dev/null 2>&1; then
       echo -e "$prog 安装中......"
       apt install -y "$prog" >/dev/null 2>&1
+      apt install -y silversearcher-ag >/dev/null 2>&1
     fi
 
   fi
@@ -138,8 +147,8 @@ base_check() {
   cpu=$(ps aux | grep -v ^'USER' | sort -rn -k3 | head -15) 2>/dev/null
   echo -e "\e[00;31m[+]CPU TOP15:  \e[00m\n${cpu}\n" | tee -a "$filename"
   #内存占用TOP 15
-  cpu=$(ps aux | grep -v ^'USER' | sort -rn -k3 | head -15) 2>/dev/null
-  echo -e "\e[00;31m[+]内存占用 TOP15:  \e[00m\n${cpu}\n" | tee -a "$filename"
+  mem=$(ps aux | grep -v ^'USER' | sort -rn -k4 | head -15) 2>/dev/null
+  echo -e "\e[00;31m[+]内存占用 TOP15:  \e[00m\n${mem}\n" | tee -a "$filename"
   #内存占用
   echo -e "\e[00;31m[+]内存占用\e[00m" | tee -a "$filename"
   free -mh | tee -a "$filename"
@@ -457,7 +466,7 @@ rootkit_check() {
   echo -e "############ Rootkit检查 ############\n" | tee -a "$vuln"
   #lsmod 可疑模块
   echo -e "\e[00;31m[+]lsmod 可疑模块\e[00m" | tee -a "$vuln"
-  lsmod | ag -v "ablk_helper|ac97_bus|acpi_power_meter|aesni_intel|ahci|ata_generic|ata_piix|auth_rpcgss|binfmt_misc|bluetooth|bnep|bnx2|bridge|cdrom|cirrus|coretemp|crc_t10dif|crc32_pclmul|crc32c_intel|crct10dif_common|crct10dif_generic|crct10dif_pclmul|cryptd|dca|dcdbas|dm_log|dm_mirror|dm_mod|dm_region_hash|drm|drm_kms_helper|drm_panel_orientation_quirks|e1000|ebtable_broute|ebtable_filter|ebtable_nat|ebtables|edac_core|ext4|fb_sys_fops|floppy|fuse|gf128mul|ghash_clmulni_intel|glue_helper|grace|i2c_algo_bit|i2c_core|i2c_piix4|i7core_edac|intel_powerclamp|ioatdma|ip_set|ip_tables|ip6_tables|ip6t_REJECT|ip6t_rpfilter|ip6table_filter|ip6table_mangle|ip6table_nat|ip6ta ble_raw|ip6table_security|ipmi_devintf|ipmi_msghandler|ipmi_si|ipmi_ssif|ipt_MASQUERADE|ipt_REJECT|iptable_filter|iptable_mangle|iptable_nat|iptable_raw|iptable_security|iTCO_vendor_support|iTCO_wdt|jbd2|joydev|kvm|kvm_intel|libahci|libata|libcrc32c|llc|lockd|lpc_ich|lrw|mbcache|megaraid_sas|mfd_core|mgag200|Module|mptbase|mptscsih|mptspi|nf_conntrack|nf_conntrack_ipv4|nf_conntrack_ipv6|nf_defrag_ipv4|nf_defrag_ipv6|nf_nat|nf_nat_ipv4|nf_nat_ipv6|nf_nat_masquerade_ipv4|nfnetlink|nfnetlink_log|nfnetlink_queue|nfs_acl|nfsd|parport|parport_pc|pata_acpi|pcspkr|ppdev|rfkill|sch_fq_codel|scsi_transport_spi|sd_mod|serio_raw|sg|shpchp|snd|snd_ac97_codec|snd_ens1371|snd_page_alloc|snd_pcm|snd_rawmidi|snd_seq|snd_seq_device|snd_seq_midi|snd_seq_midi_event|snd_timer|soundcore|sr_mod|stp|sunrpc|syscopyarea|sysfillrect|sysimgblt|tcp_lp|ttm|tun|uvcvideo|videobuf2_core|videobuf2_memops|videobuf2_vmalloc|videodev|virtio|virtio_balloon|virtio_console|virtio_net|virtio_pci|virtio_ring|virtio_scsi|vmhgfs|vmw_balloon|vmw_vmci|vmw_vsock_vmci_transport|vmware_balloon|vmwgfx|vsock|xfs|xt_CHECKSUM|xt_conntrack|xt_state|raid*|tcpbbr|btrfs|.*diag|psmouse|ufs|linear|msdos|cpuid|veth|xt_tcpudp|xfrm_user|xfrm_algo|xt_addrtype|br_netfilter|input_leds|sch_fq|ib_iser|rdma_cm|iw_cm|ib_cm|ib_core|.*scsi.*|tcp_bbr|pcbc|autofs4|multipath|hfs.*|minix|ntfs|vfat|jfs|usbcore|usb_common|ehci_hcd|uhci_hcd|ecb|crc32c_generic|button|hid|usbhid|evdev|hid_generic|overlay|xt_nat|qnx4|sb_edac|acpi_cpufreq|ixgbe|pf_ring|tcp_htcp|cfg80211|x86_pkg_temp_thermal|mei_me|mei|processor|thermal_sys|lp|enclosure|ses|ehci_pci|igb|i2c_i801|pps_core|isofs|nls_utf8|xt_REDIRECT|xt_multiport|iosf_mbi|qxl|cdc_ether|usbnet" | tee -a "$vuln"
+  lsmod | ag -v "ablk_helper|ac97_bus|acpi_power_meter|aesni_intel|ahci|ata_generic|ata_piix|auth_rpcgss|binfmt_misc|bluetooth|bnep|bnx2|bridge|cdrom|cirrus|coretemp|crc_t10dif|crc32_pclmul|crc32c_intel|crct10dif_common|crct10dif_generic|crct10dif_pclmul|cryptd|dca|dcdbas|dm_log|dm_mirror|dm_mod|dm_region_hash|drm|drm_kms_helper|drm_panel_orientation_quirks|e1000|ebtable_broute|ebtable_filter|ebtable_nat|ebtables|edac_core|ext4|fb_sys_fops|floppy|fuse|gf128mul|ghash_clmulni_intel|glue_helper|grace|i2c_algo_bit|i2c_core|i2c_piix4|i7core_edac|intel_powerclamp|ioatdma|ip_set|ip_tables|ip6_tables|ip6t_REJECT|ip6t_rpfilter|ip6table_filter|ip6table_mangle|ip6table_nat|ip6ta ble_raw|ip6table_security|ipmi_devintf|ipmi_msghandler|ipmi_si|ipmi_ssif|ipt_MASQUERADE|ipt_REJECT|iptable_filter|iptable_mangle|iptable_nat|iptable_raw|iptable_security|iTCO_vendor_support|iTCO_wdt|jbd2|joydev|kvm|kvm_intel|libahci|libata|libcrc32c|llc|lockd|lpc_ich|lrw|mbcache|megaraid_sas|mfd_core|mgag200|Module|mptbase|mptscsih|mptspi|nf_conntrack|nf_conntrack_ipv4|nf_conntrack_ipv6|nf_defrag_ipv4|nf_defrag_ipv6|nf_nat|nf_nat_ipv4|nf_nat_ipv6|nf_nat_masquerade_ipv4|nfnetlink|nfnetlink_log|nfnetlink_queue|nfs_acl|nfsd|parport|parport_pc|pata_acpi|pcspkr|ppdev|rfkill|sch_fq_codel|scsi_transport_spi|sd_mod|serio_raw|sg|shpchp|snd|snd_ac97_codec|snd_ens1371|snd_page_alloc|snd_pcm|snd_rawmidi|snd_seq|snd_seq_device|snd_seq_midi|snd_seq_midi_event|snd_timer|soundcore|sr_mod|stp|sunrpc|syscopyarea|sysfillrect|sysimgblt|tcp_lp|ttm|tun|uvcvideo|videobuf2_core|videobuf2_memops|videobuf2_vmalloc|videodev|virtio|virtio_balloon|virtio_console|virtio_net|virtio_pci|virtio_ring|virtio_scsi|vmhgfs|vmw_balloon|vmw_vmci|vmw_vsock_vmci_transport|vmware_balloon|vmwgfx|vsock|xfs|xt_CHECKSUM|xt_conntrack|xt_state|raid*|tcpbbr|btrfs|.*diag|psmouse|ufs|linear|msdos|cpuid|veth|xt_tcpudp|xfrm_user|xfrm_algo|xt_addrtype|br_netfilter|input_leds|sch_fq|ib_iser|rdma_cm|iw_cm|ib_cm|ib_core|.*scsi.*|tcp_bbr|pcbc|autofs4|multipath|hfs.*|minix|ntfs|vfat|jfs|usbcore|usb_common|ehci_hcd|uhci_hcd|ecb|crc32c_generic|button|hid|usbhid|evdev|hid_generic|overlay|xt_nat|qnx4|sb_edac|acpi_cpufreq|ixgbe|pf_ring|tcp_htcp|cfg80211|x86_pkg_temp_thermal|mei_me|mei|processor|thermal_sys|lp|enclosure|ses|ehci_pci|igb|i2c_i801|pps_core|isofs|nls_utf8|xt_REDIRECT|xt_multiport|iosf_mbi|qxl|cdc_ether|usbnet|ip6table_raw|skx_edac|intel_rapl|wmi|acpi_pad|ast|i40e|ptp|nfit|libnvdimm|bpfilter|failover" | tee -a "$vuln"
   echo -e "\n" | tee -a "$vuln"
 
   echo -e "\e[00;31m[+]Rootkit 内核模块\e[00m" | tee -a "$vuln"
@@ -471,7 +480,7 @@ rootkit_check() {
   echo -e "\n" | tee -a "$vuln"
 
   echo -e "\e[00;31m[+]可疑的.ko模块\e[00m" | tee -a "$vuln"
-  find / ! -path "/proc/*" ! -path "/usr/lib/modules/*" ! -path "/boot/*" -regextype posix-extended -regex '.*\.ko' | tee -a "$vuln"
+  find / ! -path "/proc/*" ! -path "/usr/lib/modules/*" ! -path "/lib/modules/*" ! -path "/boot/*" -regextype posix-extended -regex '.*\.ko' | tee -a "$vuln"
   echo -e "\n" | tee -a "$vuln"
 }
 
@@ -501,13 +510,23 @@ ssh_check() {
   fi
   echo -e "\n" | tee -a "$vuln"
 
+  #ssh后门配置检查
+  echo -e "\e[00;31m[+]SSH 软连接后门 \e[00m" | tee -a "$vuln"
+  if ps -ef | ag '\s+\-oport=\d+' >/dev/null 2>&1; then
+    ps -ef | ag '\s+\-oport=\d+' | tee -a "$vuln"
+  else
+    echo "未检测到SSH软连接后门" | tee -a "$vuln"
+
+  fi
+  echo -e "\n" | tee -a "$vuln"
+
   echo -e "\e[00;31m[+]SSH inetd后门检查 \e[00m" | tee -a "$vuln"
   if [ -e "/etc/inetd.conf" ]; then
     grep -E '(bash -i)' </etc/inetd.conf | tee -a "$vuln"
   fi
   echo -e "\n" | tee -a "$vuln"
 
-  echo -e "\e[00;31m[+]SSH key\e[00m" | tee -a "$filename"
+  echo -e "\e[00;31m[+]SSH key\e[00m" | tee -a "$vuln"
   sshkey=${HOME}/.ssh/authorized_keys
   if [ -e "${sshkey}" ]; then
     # shellcheck disable=SC2002
@@ -562,26 +581,6 @@ miner_check() {
   echo -e "\n" | tee -a "$vuln"
 }
 
-rkhunter_install() {
-  echo -e "############ Rkhunter 安装 ############\n" | tee -a "$filename"
-  echo -e "\e[00;31m[+]Rkhunter查杀\e[00m" | tee -a "$filename"
-  if rkhunter >/dev/null 2>&1; then
-    rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
-  else
-    if [ -e "/tmp/rkhunter.tar.gz" ]; then
-      cd /tmp && tar -zxvf /tmp/rkhunter.tar.gz >/dev/null 2>&1
-      cd /tmp/rkhunter-1.4.6/ && ./installer.sh --install >/dev/null 2>&1
-      rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
-    else
-      echo -e "找不到rkhunter.tar.gz尝试下载"
-      wget https://github.com/al0ne/LinuxCheck/raw/master/rkhunter.tar.gz -O /tmp/rkhunter.tar.gz >/dev/null 2>&1
-      tar -zxvf /tmp/rkhunter.tar.gz >/dev/null 2>&1
-      cd /tmp/rkhunter-1.4.6/ && ./installer.sh --install >/dev/null 2>&1
-      rkhunter --checkall --sk | ag -v 'OK|Not found|None found'
-    fi
-  fi
-}
-
 risk_check() {
   echo -e "############ 服务器风险/漏洞检查 ############\n" | tee -a "$vuln"
   echo -e "\e[00;31m[+]Redis弱密码检测\e[00m" | tee -a "$vuln"
@@ -602,5 +601,4 @@ ssh_check
 webshell_check
 poison_check
 miner_check
-rkhunter_install
 risk_check
