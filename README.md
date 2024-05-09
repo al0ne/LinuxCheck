@@ -1,7 +1,38 @@
 # LinuxCheck
 
 Linux应急处置/信息搜集/漏洞检测工具，支持基础配置/网络流量/任务计划/环境变量/用户信息/Services/bash/恶意文件/内核Rootkit/SSH/Webshell/挖矿文件/挖矿进程/供应链/服务器风险等13类70+项检查
-### 功能
+
+## 更新
+
+更新日志：2024年4月20日
+
+- 调整输出为Markdown报告
+- 弃用ag，还是使用Linux原生的grep命令，避免额外安装
+- 优化代码格式，不在每条都要tee -a
+- 更新Webshell检测逻辑
+- 更新authorized_keys检测逻辑
+- 服务器风险检查添加JDWP和Python HTTP Server检查
+- 添加Docker 容器检测
+- 添加PAM后门检测
+- 添加本地报告上传能力，应对批量机器应急的情况。
+
+更新日志：2022年08月05日
+
+- 修复内核模块检查日志过多问题
+
+更新日志：2022年03月07日
+
+- 添加SSH软连接后门检测
+
+更新日期：2021年10月17日
+
+- 添加Ntpclient/WorkMiner/TeamTNT挖矿木马检测
+- 添加Rootkit模块检测逻辑
+- 添加Python pip投毒检测
+- 添加$HOME/.profile查看
+- 添加服务器风险检查(Redis)
+
+## 功能
 
 * 基础配置检查
     * 系统配置改动检查
@@ -94,29 +125,20 @@ Linux应急处置/信息搜集/漏洞检测工具，支持基础配置/网络流
     * Python PIP 投毒检查
 * 服务器风险检查
     * Redis弱密码检测
+    * JDWP 服务检测
+    * Python http.server 检测
+* Docker 权限检查
 
-### Usage
+## Usage
 
-联网状态：
- - apt-get install silversearcher-ag
- - yum -y install the_silver_searcher  
+第一种方式：通过git clone 安装
 
-离线状态：   
- - Debian：dpkg -i silversearcher-ag_2.2.0-1+b1_amd64.deb  
- - Centos：rpm -ivh the_silver_searcher-2.1.0-1.el7.x86_64.rpm  
-
-```
-git clone https://github.com/al0ne/LinuxCheck.git  
-```
-```
+```bash
+git clone https://github.com/al0ne/LinuxCheck.git
 chmod u+x LinuxCheck.sh
-```
-
-```
 ./LinuxCheck.sh  
 ```
-
-如果已经安装了ag和rkhunter可以直接使用以下命令 
+第二种方式：直接在线调用【在线调用就没办法使用报告上传的能力】
 
 ```
 bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/LinuxCheck.sh)"  
@@ -124,11 +146,54 @@ bash -c "$(curl -sSL https://raw.githubusercontent.com/al0ne/LinuxCheck/master/L
 
 文件会保存成ipaddr_hostname_username_timestamp.log 这种格式
 
-### 参考
+### 报告自动上传
+
+如果是批量机器下发，脚本执行后会自动提交到某一个url下，将脚本里面的webhook_url 改成你自己的地址
+
+```shell
+# 报告上报的地址
+webhook_url='http://localhost:5000/upload'
+
+upload_report() {
+
+  # 上传到指定接口
+  if [[ -n $webhook_url ]]; then
+    curl -X POST -F "file=@$filename" "$webhook_url"
+  fi
+
+}
+```
+
+在你的服务器上用Flask起一个服务，接收服务器上报的Markdown报告。
+
+```python
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return "No file part", 400
+    file = request.files['file']
+    if file.filename == '':
+        return "No selected file", 400
+    if file:
+        filename = file.filename
+        file.save(filename)
+        return "File successfully uploaded", 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+
+
+## 参考
 
 此工具的编写主要参考了以下几款工具/文章并结合个人经验完成
 
-Linenum    
+Linenum
 https://github.com/lis912/Evaluation_tools  
 https://ixyzero.com/blog/archives/4.html  
 https://github.com/T0xst/linux   
